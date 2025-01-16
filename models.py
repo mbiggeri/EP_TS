@@ -385,7 +385,7 @@ def train_epoch_TS(
             # Clamping con reset (o init) degli stati dei neuroni
             # ------------------------------
             if neuronsz is None:
-                # Primo timestep: stati neuronali inizializzati a zero
+                # Primo timestep: stati inizializzati a zero
                 neuronsz, neuronsy = model.init_neurons(B, device)
             else:
                 # Reset parziale (o totale, se reset_factor=0)
