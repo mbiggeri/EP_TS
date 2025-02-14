@@ -11,7 +11,7 @@ from models import (make_pools, P_MLP, RON,
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_root', type=str, default='/Users/michaelbiggeri/Desktop/Tesi/Codice/datasets')
+parser.add_argument('--data_root', type=str, default='/home/gibberi/Desktop/Tesi/Datasets')
 parser.add_argument('--model', type=str, default='MLP', metavar='m', help='model', choices=['RON', 'RON_TS', 'MLP', 'MLP_TS'])
 parser.add_argument('--task', type=str, default='MNIST', metavar='t', help='task', choices=['MNIST', 'CIFAR10', 'PD'])
 
@@ -56,6 +56,9 @@ parser.add_argument('--gamma_min', type=float, default=1.0)
 parser.add_argument('--gamma_max', type=float, default=2.0)
 parser.add_argument('--tau', type=float, default=0.1)
 parser.add_argument('--learn_oscillators', action='store_true')
+
+# Reset Factor for Time Series
+parser.add_argument('--rf', type=float, default=0.0, help='Reset Factor for Time Series')
 
 parser.add_argument('--weight-decay', type=float, default=0.0, metavar='wd',
                     help='Weight decay (L2 regularization) factor (default: 0.0)')
@@ -252,7 +255,7 @@ if __name__ == "__main__":
             hidden_layer_norms = train_epoch(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device,
                         criterion, alg=args.alg, random_sign=args.random_sign, thirdphase=args.thirdphase, cep_debug=args.cep_debug)
         else:
-            train_epoch_TS(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device, criterion)
+            train_epoch_TS(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device, criterion, reset_factor=args.rf)
 
         if scheduler is not None:  # learning rate decay step
             if epoch < scheduler.T_max:

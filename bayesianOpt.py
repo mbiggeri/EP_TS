@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='RON', metavar='m', 
                     choices=['RON', 'RON_TS', 'MLP', 'MLP_TS'],
                     help='Choose between RON, RON_TS, MLP, and MLP_TS')
-parser.add_argument('--data_root', type=str, default='/Users/michaelbiggeri/Desktop/Tesi/Codice/datasets', 
+parser.add_argument('--data_root', type=str, default='/home/gibberi/Desktop/Tesi/Datasets', 
                     help='Folder where datasets are saved/downloaded')
 parser.add_argument('--task', type=str, default='MNIST', metavar='t', 
                     choices=['MNIST', 'CIFAR10', 'PD'],
@@ -54,6 +54,9 @@ parser.add_argument('--gamma_max', type=float, default=2.0, help='gamma_max (for
 parser.add_argument('--tau', type=float, default=0.1, help='Tau factor (for RON)')
 parser.add_argument('--learn_oscillators', action='store_true', help='Use oscillator learning (for RON)')
 
+# Reset Factor for Time Series
+parser.add_argument('--rf', type=float, default=0.0, help='Reset Factor for Time Series')
+
 # Other optimization parameters
 parser.add_argument('--use_test', action='store_true', help='Use test set instead of validation')
 parser.add_argument('--lr-decay', action='store_true', help='Enable CosineAnnealingLR')
@@ -66,6 +69,7 @@ parser.add_argument('--seed', type=int, default=None, help='Global random seed')
 
 args = parser.parse_args()
 
+# usage example: python bayesianOpt.py --model RON_TS --epochs 3 --task PD --learn_oscillators
 
 '''
 DEVICE
@@ -130,6 +134,10 @@ def objective(trial):
     opt_params = {
         'eps_min': trial.suggest_float('eps_min', 0.2, 1.6, step=0.2),
         'gamma_min': trial.suggest_float('gamma_min', 0.2, 3.0, step=0.2),
+        # 'archi': trial.suggest_categorical('archi', [[16, 64, 10], [16, 256, 10]]),
+        'T1': trial.suggest_int('T1', 20, 300, step=20),
+        'T2': trial.suggest_int('T2', 10, 80, step=5),
+        #'rf': trial.suggest_float('rf', 0.0, 1.0, step=0.2)
     }
     opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 2.8, step=0.2)
     opt_params['gamma_max'] = trial.suggest_float('gamma_max', opt_params['gamma_min'] + 0.4, 4.0, step=0.2)
@@ -142,15 +150,16 @@ def objective(trial):
 
     # --- Fixed parameters (for training and network architecture)
     fixed_params = {
-        'T1': 100,
-        'T2': 15,
+        #'T1': 100,
+        #'T2': 15,
         'betas': (0.0, 0.5),
         'loss': 'mse',
         'tau': 0.7,
         'batch_size': 64,
         'act': 'my_hard_sig',
-        'archi': [2, 32, 32, 10],
+        'archi': [2, 1024, 10],
         'mmt': 0.9,
+        'rf': 1.0
     }
     params = {**opt_params, **fixed_params}
     print('Trial hyperparameters:', params)
@@ -199,7 +208,7 @@ def objective(trial):
     model.to(device)
 
     # --- Optimizer construction ---
-    lr = trial.suggest_float('lr', 1e-4, 1e-2, log=True)
+    lr = trial.suggest_float('lr', 1e-4, 1e-1, log=True)
     optim_params = []
     for idx in range(len(model.synapses)):
         if args.wds is None:
@@ -209,7 +218,7 @@ def objective(trial):
                                  'lr': lr, 'weight_decay': args.wds[idx]})
     # (If the model has additional parameter groups like B_syn, add them here as needed.)
     import torch.optim as optim
-    optimizer = optim.Adam(optim_params, weight_decay=weight_decay)
+    optimizer = optim.SGD(optim_params, weight_decay=weight_decay)
 
     # --- Optional scheduler ---
     if args.lr_decay:
@@ -230,13 +239,13 @@ def objective(trial):
             train_epoch(
                 model, optimizer, epoch,
                 train_loader, params['T1'], params['T2'], params['betas'],
-                device, criterion
+                device, criterion, id=trial.number
             )
         else:
             train_epoch_TS(
                 model, optimizer, epoch,
                 train_loader, params['T1'], params['T2'], params['betas'],
-                device, criterion
+                device, criterion, reset_factor=params['rf'], id=trial.number
             )
         if scheduler is not None:
             if epoch < scheduler.T_max:
@@ -266,7 +275,7 @@ pruner = optuna.pruners.HyperbandPruner(
 )
 
 study = optuna.create_study(direction='maximize', pruner=pruner)
-study.optimize(objective, n_trials=15, n_jobs=1)  # n_jobs=-1 to use all cores
+study.optimize(objective, n_trials=75, n_jobs=-1)  # n_jobs=-1 to use all cores
 
 # Print top 5 best trials
 print('\nTop 5 Best Trials:')

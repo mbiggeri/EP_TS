@@ -308,28 +308,8 @@ Modified training and evaluation functions to support both P_MLP and RON models.
 For P_MLP we use a single state (neurons) while for RON we use two states (neuronsz, neuronsy).
 """
 
-def train_epoch(
-    model,
-    optimizer,
-    epoch_number,
-    train_loader,
-    T1,
-    T2,
-    betas,
-    device,
-    criterion,
-    alg='EP',
-    random_sign=False,
-    thirdphase=False,
-    cep_debug=False,
-    id=None
-):
-    """
-    Train one epoch over train_loader.
-    Modified so that if model is an instance of P_MLP then we use a single state (neurons)
-    instead of two states as in RON.
-    """
-    
+def train_epoch(model, optimizer, epoch_number, train_loader, T1, T2, betas, device, criterion, alg='EP',
+          random_sign=False, thirdphase=False, cep_debug=False, ron=False, id=None):
     mbs = train_loader.batch_size
     iter_per_epochs = math.ceil(len(train_loader.dataset) / mbs)
     beta_1, beta_2 = betas
@@ -338,92 +318,151 @@ def train_epoch(
     run_total = 0
     model.train()
 
-    # Optional: store hidden layer norms
-    hidden_layer_norms = []
-
     for idx, (x, y) in enumerate(train_loader):
         x, y = x.to(device), y.to(device)
+        # if alg=='CEP' and cep_debug:
+        #    x = x.double()
 
-        if isinstance(model, P_MLP):
-            # --- MLP branch: use a single state "neurons" ---
-            neurons = model.init_neurons(x.size(0), device)
-
-            # Clamping phase: run dynamics for T1 steps with beta_1
-            neurons_1 = model(x, y, neurons, T1, beta=beta_1, criterion=criterion)
-            # For diagnostic accuracy, use the output in the list of neurons.
-            with torch.no_grad():
-                if not model.softmax:
-                    pred = torch.argmax(neurons_1[-1], dim=1).squeeze()
-                else:
-                    pred = torch.argmax(
-                        F.softmax(model.synapses[-1](neurons_1[-1].view(x.size(0), -1)), dim=1),
-                        dim=1
-                    ).squeeze()
-                run_correct += (y == pred).sum().item()
-                run_total += x.size(0)
-
-            # Nudging phase: run dynamics for T2 steps with beta_2 (or negative beta if thirdphase)
-            neurons_2 = model(x, y, neurons_1, T2, beta=beta_2, criterion=criterion)
-
-            # Optionally, a third phase
-            if thirdphase:
-                neurons = neurons_1  # reset to first-phase state
-                neurons_3 = model(x, y, neurons, T2, beta=-beta_2, criterion=criterion)
-            else:
-                # Compute gradients (EP update) using the two phases’ steady states.
-                model.compute_syn_grads(x, y, neurons_1, neurons_2, (beta_1, beta_2), criterion)
-
-        else:
-            # --- RON branch: use two states "neuronsz" and "neuronsy" ---
+        if ron:
             neuronsz, neuronsy = model.init_neurons(x.size(0), device)
-            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T1, beta=beta_1, criterion=criterion)
-            neurons_1 = (copy(neuronsz), copy(neuronsy))
-            # For prediction, we use neuronsy (the second state)
-            with torch.no_grad():
-                if not model.softmax:
-                    pred = torch.argmax(neuronsy[-1], dim=1).squeeze()
-                else:
-                    pred = torch.argmax(
-                        F.softmax(model.synapses[-1](neuronsy[-1].view(x.size(0), -1)), dim=1),
-                        dim=1
-                    ).squeeze()
-                run_correct += (y == pred).sum().item()
-                run_total += x.size(0)
+        else:
+            neurons = model.init_neurons(x.size(0), device)
+        if alg == 'EP' or alg == 'CEP':
+            # First phase
+            if ron:
+                neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T1, beta=beta_1, criterion=criterion)
+                neurons_1 = (copy(neuronsz), copy(neuronsy))
+                neurons = neuronsy
+            else:
+                neurons = model(x, y, neurons, T1, beta=beta_1, criterion=criterion)
+                neurons_1 = copy(neurons)
+        elif alg == 'BPTT':
+            assert not ron, "RON not implemented for BPTT"
+            neurons = model(x, y, neurons, T1 - T2, beta=0.0, criterion=criterion)
+            # detach data and neurons from the graph
+            x = x.detach()
+            x.requires_grad = True
+            for k in range(len(neurons)):
+                neurons[k] = neurons[k].detach()
+                neurons[k].requires_grad = True
 
-            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T2, beta=beta_2, criterion=criterion)
-            neurons_2 = (copy(neuronsz), copy(neuronsy))
+            neurons = model(x, y, neurons, T2, beta=0.0, criterion=criterion)  # T2 time step
+
+        # Predictions for running accuracy
+        with torch.no_grad():
+            if not model.softmax:
+                pred = torch.argmax(neurons[-1], dim=1).squeeze()
+            else:
+                # WATCH OUT: prediction is different when softmax == True
+                pred = torch.argmax(F.softmax(model.synapses[-1](neurons[-1].view(x.size(0), -1)), dim=1),
+                                    dim=1).squeeze()
+
+            run_correct += (y == pred).sum().item()
+            run_total += x.size(0)
+
+        if alg == 'EP':
+            # Second phase
+            if random_sign and (beta_1 == 0.0):
+                rnd_sgn = 2 * np.random.randint(2) - 1
+                betas = beta_1, rnd_sgn * beta_2
+                beta_1, beta_2 = betas
+
+            if ron:
+                neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T2, beta=beta_2, criterion=criterion)
+                neurons_2 = (copy(neuronsz), copy(neuronsy))
+            else:
+                neurons = model(x, y, neurons, T2, beta=beta_2, criterion=criterion)
+                neurons_2 = copy(neurons)
+
+            # Third phase (if we approximate f' as f'(x) = (f(x+h) - f(x-h))/2h)
+            if thirdphase:
+                if ron:
+                    neuronsz, neuronsy = copy(neurons_1[0]), copy(neurons_1[1])
+                    neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T2, beta=- beta_2, criterion=criterion)
+                    neurons_3 = (copy(neuronsz), copy(neuronsy))
+                else:
+                # come back to the first equilibrium
+                    neurons = copy(neurons_1)
+                    neurons = model(x, y, neurons, T2, beta=- beta_2, criterion=criterion)
+                    neurons_3 = copy(neurons)
+                if not (isinstance(model, VF_CNN)):
+                    model.compute_syn_grads(x, y, neurons_2, neurons_3, (beta_2, - beta_2), criterion)
+                else:
+                    if model.same_update:
+                        model.compute_syn_grads(x, y, neurons_2, neurons_3, (beta_2, - beta_2), criterion)
+                    else:
+                        model.compute_syn_grads(x, y, neurons_1, neurons_2, (beta_2, - beta_2), criterion,
+                                                neurons_3=neurons_3)
+            else:
+                model.compute_syn_grads(x, y, neurons_1, neurons_2, betas, criterion)
+
+            optimizer.step()
+
+        elif alg == 'CEP':
+            if random_sign and (beta_1 == 0.0):
+                rnd_sgn = 2 * np.random.randint(2) - 1
+                betas = beta_1, rnd_sgn * beta_2
+                beta_1, beta_2 = betas
+
+            # second phase
+            if cep_debug:
+                prev_p = {}
+                for (n, p) in model.named_parameters():
+                    prev_p[n] = p.clone().detach()
+                for i in range(len(model.synapses)):
+                    prev_p['lrs' + str(i)] = optimizer.param_groups[i]['lr']
+                    prev_p['wds' + str(i)] = optimizer.param_groups[i]['weight_decay']
+                    optimizer.param_groups[i]['lr'] *= 6e-5
+                    # optimizer.param_groups[i]['weight_decay'] = 0.0
+
+            for k in range(T2):
+                neurons = model(x, y, neurons, 1, beta=beta_2, criterion=criterion)  # one step
+                neurons_2 = copy(neurons)
+                model.compute_syn_grads(x, y, neurons_1, neurons_2, betas,
+                                        criterion)  # compute cep update between 2 consecutive steps
+                for (n, p) in model.named_parameters():
+                    p.grad.data.div_((1 - optimizer.param_groups[int(n[9])]['lr'] *
+                                      optimizer.param_groups[int(n[9])]['weight_decay']) ** (T2 - 1 - k))
+                optimizer.step()  # update weights
+                neurons_1 = copy(neurons)
 
             if thirdphase:
-                neuronsz, neuronsy = copy(neurons_1[0]), copy(neurons_1[1])
-                neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T2, beta=-beta_2, criterion=criterion)
-                neurons_3 = (copy(neuronsz), copy(neuronsy))
+                neurons = model(x, y, neurons, T2, beta=0.0, criterion=criterion)  # come back to s*
+                neurons_2 = copy(neurons)
+                for k in range(T2):
+                    neurons = model(x, y, neurons, 1, beta=-beta_2, criterion=criterion)
+                    neurons_3 = copy(neurons)
+                    model.compute_syn_grads(x, y, neurons_2, neurons_3, (beta_2, -beta_2), criterion)
+                    optimizer.step()
+                    neurons_2 = copy(neurons)
+
+        elif alg == 'BPTT':
+            assert not ron, "RON not implemented for BPTT"
+            # final loss
+            if criterion.__class__.__name__.find('MSE') != -1:
+                loss = 0.5 * criterion(neurons[-1].float(), F.one_hot(y, num_classes=model.nc).float()).sum(
+                    dim=1).mean().squeeze()
             else:
-                model.compute_syn_grads(x, y, neurons_1, neurons_2, (beta_1, beta_2), criterion)
+                if not model.softmax:
+                    loss = criterion(neurons[-1].float(), y).mean().squeeze()
+                else:
+                    loss = criterion(model.synapses[-1](neurons[-1].view(x.size(0), -1)).float(),
+                                     y).mean().squeeze()
+            # setting gradients field to zero before backward
+            model.zero_grad()
 
-        optimizer.step()
-
-        # Save norms of synaptic weights if available
-        if hasattr(model, 'synapses'):
-            layer_norms = [
-                torch.norm(layer.weight).item()
-                for layer in model.synapses if hasattr(layer, 'weight')
-            ]
-            hidden_layer_norms.append(layer_norms)
-
-        # Diagnostic prints
+            # Backpropagation through time
+            loss.backward()
+            optimizer.step()
         if ((idx % (iter_per_epochs // 10) == 0) or (idx == iter_per_epochs - 1)):
             run_acc = run_correct / run_total
-            if id is not None:
-                # Custom logging (if needed)
+            if (id != None):
+                # print("Trial ", id, '-> Epoch :', round(epoch_number + (idx / iter_per_epochs), 2),
+                #   '\tRun train acc :', round(run_acc, 3), '\t(' + str(run_correct) + '/' + str(run_total) + ')')
                 pass
             else:
-                print(
-                    'Epoch :', round(epoch_number + (idx / iter_per_epochs), 2),
-                    '\tRun train acc :', round(run_acc, 3),
-                    '\t(', run_correct, '/', run_total, ')'
-                )
-
-    return hidden_layer_norms
+                print('Epoch :', round(epoch_number + (idx / iter_per_epochs), 2),
+                  '\tRun train acc :', round(run_acc, 3), '\t(' + str(run_correct) + '/' + str(run_total) + ')')
 
 
 def train_epoch_TS(
@@ -529,27 +568,27 @@ def train_epoch_TS(
                 )
 
 
-def evaluate(model, loader, T, device):
-    """
-    Evaluate the model on a data loader.
-    Modified so that if model is P_MLP, we use a single state.
-    """
+def evaluate(model, loader, T, device, ron=False):
+    # Evaluate the model on a dataloader with T steps for the dynamics
     model.eval()
     correct = 0
 
     for x, y in loader:
         x, y = x.to(device), y.to(device)
-
-        if isinstance(model, P_MLP):
-            neurons = model.init_neurons(x.size(0), device)
-            neurons = model(x, y, neurons, T, beta=0.0)
-            output = neurons[-1]
-        else:
+        if ron:
             neuronsz, neuronsy = model.init_neurons(x.size(0), device)
-            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T, beta=0.0)
-            output = neuronsy[-1]
+            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, T)  # dynamics for T time steps
+            neurons = neuronsy
+        else:
+            neurons = model.init_neurons(x.size(0), device)
+            neurons = model(x, y, neurons, T)  # dynamics for T time steps
 
-        pred = torch.argmax(output, dim=1).squeeze()
+        if not model.softmax:
+            pred = torch.argmax(neurons[-1],
+                                dim=1).squeeze()  # in this cas prediction is done directly on the last (output) layer of neurons
+        else:  # prediction is done as a readout of the penultimate layer (output is not part of the system)
+            pred = torch.argmax(F.softmax(model.synapses[-1](neurons[-1].view(x.size(0), -1)), dim=1), dim=1).squeeze()
+
         correct += (y == pred).sum().item()
 
     acc = correct / len(loader.dataset)
@@ -559,33 +598,42 @@ def evaluate(model, loader, T, device):
 def evaluate_TS(model, loader, T, device):
     """
     Evaluate the model on time-series data.
-    Modified so that if model is P_MLP, we use a single state.
+    - For a single-state network (e.g. P_MLP), we use one state.
+    - For models like RON with two states, we use both states.
+    If labels are provided per time step (shape: [B, T]), then the label for the current time step
+    is used; otherwise, the same label is applied at every step.
     """
     model.eval()
     correct = 0
     total = 0
 
-    for x, y in loader:
-        x = x.to(device)
-        y = y.to(device)
-        B, T_seq, D = x.shape
+    with torch.no_grad():
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device)
+            B, T_seq, D = x.shape
 
-        if isinstance(model, P_MLP):
-            neurons = model.init_neurons(B, device)
-            for t in range(T_seq):
-                x_t = x[:, t, :]
-                neurons = model(x_t, y, neurons, T, beta=0.0)
-            output = neurons[-1]
-        else:
-            neuronsz, neuronsy = model.init_neurons(B, device)
-            for t in range(T_seq):
-                x_t = x[:, t, :]
-                neuronsz, neuronsy = model(x_t, y, neuronsz, neuronsy, T, beta=0.0)
-            output = neuronsy[-1]
+            if hasattr(model, 'P_MLP') and isinstance(model, P_MLP):
+                # Single-state network (e.g., P_MLP)
+                neurons = model.init_neurons(B, device)
+                for t in range(T_seq):
+                    x_t = x[:, t, :]
+                    # Use per-timestep label if available; otherwise, use the entire y
+                    y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                    neurons = model(x_t, y_t, neurons, T, beta=0.0)
+                output = neurons[-1]
+            else:
+                # Two-state branch (e.g., RON)
+                neuronsz, neuronsy = model.init_neurons(B, device)
+                for t in range(T_seq):
+                    x_t = x[:, t, :]
+                    y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                    neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, T, beta=0.0)
+                output = neuronsy[-1]
 
-        pred = torch.argmax(output, dim=1).squeeze()
-        correct += (pred == y).sum().item()
-        total += B
+            pred = torch.argmax(output, dim=1).squeeze()
+            correct += (pred == y).sum().item()
+            total += B
 
     acc = correct / total
     return acc
