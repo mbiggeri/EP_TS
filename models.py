@@ -607,33 +607,32 @@ def evaluate_TS(model, loader, T, device):
     correct = 0
     total = 0
 
-    with torch.no_grad():
-        for x, y in loader:
-            x = x.to(device)
-            y = y.to(device)
-            B, T_seq, D = x.shape
+    for x, y in loader:
+        x = x.to(device)
+        y = y.to(device)
+        B, T_seq, D = x.shape
 
-            if hasattr(model, 'P_MLP') and isinstance(model, P_MLP):
-                # Single-state network (e.g., P_MLP)
-                neurons = model.init_neurons(B, device)
-                for t in range(T_seq):
-                    x_t = x[:, t, :]
-                    # Use per-timestep label if available; otherwise, use the entire y
-                    y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
-                    neurons = model(x_t, y_t, neurons, T, beta=0.0)
-                output = neurons[-1]
-            else:
-                # Two-state branch (e.g., RON)
-                neuronsz, neuronsy = model.init_neurons(B, device)
-                for t in range(T_seq):
-                    x_t = x[:, t, :]
-                    y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
-                    neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, T, beta=0.0)
-                output = neuronsy[-1]
+        if hasattr(model, 'P_MLP') and isinstance(model, P_MLP):
+            # Single-state network (e.g., P_MLP)
+            neurons = model.init_neurons(B, device)
+            for t in range(T_seq):
+                x_t = x[:, t, :]
+                # Use per-timestep label if available; otherwise, use the entire y
+                y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                neurons = model(x_t, y_t, neurons, T, beta=0.0)
+            output = neurons[-1]
+        else:
+            # Two-state branch (e.g., RON)
+            neuronsz, neuronsy = model.init_neurons(B, device)
+            for t in range(T_seq):
+                x_t = x[:, t, :]
+                y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, T, beta=0.0)
+            output = neuronsy[-1]
 
-            pred = torch.argmax(output, dim=1).squeeze()
-            correct += (pred == y).sum().item()
-            total += B
+        pred = torch.argmax(output, dim=1).squeeze()
+        correct += (pred == y).sum().item()
+        total += B
 
     acc = correct / total
     return acc

@@ -135,8 +135,8 @@ def objective(trial):
         'eps_min': trial.suggest_float('eps_min', 0.2, 1.6, step=0.2),
         'gamma_min': trial.suggest_float('gamma_min', 0.2, 3.0, step=0.2),
         # 'archi': trial.suggest_categorical('archi', [[16, 64, 10], [16, 256, 10]]),
-        'T1': trial.suggest_int('T1', 20, 300, step=20),
-        'T2': trial.suggest_int('T2', 10, 80, step=5),
+        'T1': trial.suggest_int('T1', 20, 160, step=20),
+        'T2': trial.suggest_int('T2', 5, 40, step=5),
         #'rf': trial.suggest_float('rf', 0.0, 1.0, step=0.2)
     }
     opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 2.8, step=0.2)
@@ -157,7 +157,7 @@ def objective(trial):
         'tau': 0.7,
         'batch_size': 64,
         'act': 'my_hard_sig',
-        'archi': [2, 1024, 10],
+        'archi': [2, 256, 10],
         'mmt': 0.9,
         'rf': 1.0
     }
@@ -275,7 +275,7 @@ pruner = optuna.pruners.HyperbandPruner(
 )
 
 study = optuna.create_study(direction='maximize', pruner=pruner)
-study.optimize(objective, n_trials=75, n_jobs=-1)  # n_jobs=-1 to use all cores
+study.optimize(objective, n_trials=50, n_jobs=-1)  # n_jobs=-1 to use all cores
 
 # Print top 5 best trials
 print('\nTop 5 Best Trials:')
