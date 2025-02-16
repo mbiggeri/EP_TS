@@ -58,10 +58,14 @@ Train accuracy : 0.13
 Test accuracy : 0.14
 
 (3)
-python main.py --model MLP_TS --task PD --lrs 0.0012811037859190954 0.0012811037859190954 0.0012811037859190954 --archi 2 256 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 120 --T2 20 --rf 1.0 --epochs 10
-Train accuracy : 0.11
-Test accuracy : 0.1
+python main.py --model MLP_TS --task PD --lrs 0.0012811037859190954 0.0012811037859190954 0.0012811037859190954 --archi 2 256 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 100 --T2 20 --rf 1.0 --epochs 10
+Train accuracy : 0.20
+Test accuracy : 0.24
 
+(4)
+python main.py --model MLP_TS --task PD --lrs 0.0196 0.0196 0.0196 --archi 2 256 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 100 --T2 20 --rf 1.0 --epochs 10
+Train accuracy : 0.17
+Test accuracy : 0.27
 
 RON_TS e PD:
 (1)
