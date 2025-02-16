@@ -166,15 +166,18 @@ print('loss =', criterion, '\n')
 SELEZIONE MODELLO
 '''
 compact = False     # compact == True if the model doesn't use Time feature
+ron = False
 
 # Classic RON
 if args.model == 'RON':
+    ron = True
     compact = True
     model = RON(args.archi, device=device, activation=activation, epsilon_min=args.eps_min, epsilon_max=args.eps_max,
                 gamma_max=args.gamma_max, gamma_min=args.gamma_min, tau=args.tau, learn_oscillators=args.learn_oscillators)
     
 # RON for Time-Series
 elif args.model == 'RON_TS':
+    ron = True
     model = RON(archi=args.archi, device=device, activation=activation, epsilon_min=args.eps_min, epsilon_max=args.eps_max,
                 gamma_max=args.gamma_max, gamma_min=args.gamma_min, tau=args.tau, learn_oscillators=args.learn_oscillators)
 
@@ -252,19 +255,19 @@ if __name__ == "__main__":
     for epoch in range(args.epochs):
         # hidden_layer_norms != [] solo se non usiamo EP
         if compact:
-            hidden_layer_norms = train_epoch(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device,
-                        criterion, alg=args.alg, random_sign=args.random_sign, thirdphase=args.thirdphase, cep_debug=args.cep_debug)
+            hidden_layer_norms = train_epoch(model=model, optimizer=optimizer, epoch_number=epoch, train_loader=train_loader, T1=args.T1, T2=args.T2, betas=betas, device=device,
+                        criterion=criterion, alg=args.alg, random_sign=args.random_sign, thirdphase=args.thirdphase, cep_debug=args.cep_debug, ron=ron)
         else:
-            train_epoch_TS(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device, criterion, reset_factor=args.rf)
+            train_epoch_TS(model, optimizer, epoch, train_loader, args.T1, args.T2, betas, device, criterion, reset_factor=args.rf, ron=ron)
 
         if scheduler is not None:  # learning rate decay step
             if epoch < scheduler.T_max:
                 scheduler.step()
 
         if compact:
-            test_acc = evaluate(model, eval_loader, args.T1, device)
+            test_acc = evaluate(model, eval_loader, args.T1, device, ron=ron)
         else:
-            test_acc = evaluate_TS(model, eval_loader, args.T1, device)
+            test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
         print('\nTest accuracy :', round(test_acc, 2))
         
         # Plot della norma degli hidden layers:
@@ -297,14 +300,14 @@ if __name__ == "__main__":
 
     # Training accuracy
     if compact:
-        training_acc = evaluate(model, train_loader, args.T1, device)
+        training_acc = evaluate(model, train_loader, args.T1, device, ron=ron)
     else:
-        training_acc = evaluate_TS(model, train_loader, args.T1, device)
+        training_acc = evaluate_TS(model, train_loader, args.T1, device, ron=ron)
     print('\nTrain accuracy :', round(training_acc, 2))
     
     # Test accuracy
     if compact:
-        test_acc = evaluate(model, eval_loader, args.T1, device)
+        test_acc = evaluate(model, eval_loader, args.T1, device, ron=ron)
     else:
-        test_acc = evaluate_TS(model, eval_loader, args.T1, device)
+        test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
     print('\nTest accuracy :', round(test_acc, 2))

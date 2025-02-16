@@ -69,7 +69,7 @@ parser.add_argument('--seed', type=int, default=None, help='Global random seed')
 
 args = parser.parse_args()
 
-# usage example: python bayesianOpt.py --model RON_TS --epochs 3 --task PD --learn_oscillators
+# usage example: python bayesianOpt.py --model MLP_TS --epochs 3 --task PD
 
 '''
 DEVICE
@@ -132,15 +132,15 @@ OBJECTIVE FUNCTION FOR OPTUNA
 def objective(trial):
     # --- Hyperparameters to optimize
     opt_params = {
-        'eps_min': trial.suggest_float('eps_min', 0.2, 1.6, step=0.2),
-        'gamma_min': trial.suggest_float('gamma_min', 0.2, 3.0, step=0.2),
-        # 'archi': trial.suggest_categorical('archi', [[16, 64, 10], [16, 256, 10]]),
-        'T1': trial.suggest_int('T1', 20, 160, step=20),
-        'T2': trial.suggest_int('T2', 5, 40, step=5),
+        #'eps_min': trial.suggest_float('eps_min', 0.2, 1.6, step=0.2),
+        #'gamma_min': trial.suggest_float('gamma_min', 0.2, 3.0, step=0.2),
+        #'archi': trial.suggest_categorical('archi', [[16, 64, 10], [16, 256, 10]]),
+        #'T1': trial.suggest_int('T1', 20, 160, step=20),
+        #'T2': trial.suggest_int('T2', 5, 40, step=5),
         #'rf': trial.suggest_float('rf', 0.0, 1.0, step=0.2)
     }
-    opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 2.8, step=0.2)
-    opt_params['gamma_max'] = trial.suggest_float('gamma_max', opt_params['gamma_min'] + 0.4, 4.0, step=0.2)
+    #opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 2.8, step=0.2)
+    #opt_params['gamma_max'] = trial.suggest_float('gamma_max', opt_params['gamma_min'] + 0.4, 4.0, step=0.2)
 
     # --- L2 regularization if enabled
     if args.use_weight_decay:
@@ -150,14 +150,14 @@ def objective(trial):
 
     # --- Fixed parameters (for training and network architecture)
     fixed_params = {
-        #'T1': 100,
-        #'T2': 15,
+        'T1': 100,
+        'T2': 20,
         'betas': (0.0, 0.5),
         'loss': 'mse',
         'tau': 0.7,
         'batch_size': 64,
         'act': 'my_hard_sig',
-        'archi': [2, 256, 10],
+        'archi': [2, 256, 256, 10],
         'mmt': 0.9,
         'rf': 1.0
     }
@@ -182,6 +182,9 @@ def objective(trial):
     # --- MODEL SELECTION ---
     # Define a flag "compact": True if the model is non–time-series (i.e. classic RON or MLP)
     compact = args.model in ['RON', 'MLP']
+    # Define a flag "ron"
+    ron = args.model in ['RON', 'RON_TS']
+
     if args.model in ['RON', 'RON_TS']:
         # Use the existing RON constructor (requires oscillator parameters)
         model = RON(
@@ -239,13 +242,13 @@ def objective(trial):
             train_epoch(
                 model, optimizer, epoch,
                 train_loader, params['T1'], params['T2'], params['betas'],
-                device, criterion, id=trial.number
+                device, criterion, id=trial.number, ron=ron
             )
         else:
             train_epoch_TS(
                 model, optimizer, epoch,
                 train_loader, params['T1'], params['T2'], params['betas'],
-                device, criterion, reset_factor=params['rf'], id=trial.number
+                device, criterion, reset_factor=params['rf'], id=trial.number, ron=ron
             )
         if scheduler is not None:
             if epoch < scheduler.T_max:
@@ -253,9 +256,9 @@ def objective(trial):
 
         # --- Validation ---
         if compact:
-            val_acc = evaluate(model, valid_loader, params['T1'], device)
+            val_acc = evaluate(model, valid_loader, params['T1'], device, ron=ron)
         else:
-            val_acc = evaluate_TS(model, valid_loader, params['T1'], device)
+            val_acc = evaluate_TS(model, valid_loader, params['T1'], device, ron=ron)
 
         print(f'Epoch {epoch} - Trial {trial.number}, validation accuracy: {val_acc:.2f}')
         trial.report(val_acc, epoch)
@@ -275,7 +278,7 @@ pruner = optuna.pruners.HyperbandPruner(
 )
 
 study = optuna.create_study(direction='maximize', pruner=pruner)
-study.optimize(objective, n_trials=50, n_jobs=-1)  # n_jobs=-1 to use all cores
+study.optimize(objective, n_trials=25, n_jobs=-1)  # n_jobs=-1 to use all cores
 
 # Print top 5 best trials
 print('\nTop 5 Best Trials:')

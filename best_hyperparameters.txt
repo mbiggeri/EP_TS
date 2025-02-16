@@ -1,0 +1,277 @@
+#EXEC 1 -> n=50, MLP
+Top 5 Best Trials:
+Rank 1:
+  Value: 0.9614166666666667
+  Params: {'optimizer': 'adam', 'T1': 20, 'T2': 6, 'batch_size': 64, 'beta2': 0.5, 'lr_layer1': 0.003737936427958196, 'lr_layer2': 0.0005127903143313068}
+Rank 2:
+  Value: 0.9531666666666667
+  Params: {'optimizer': 'adam', 'T1': 15, 'T2': 4, 'batch_size': 64, 'beta2': 0.30000000000000004, 'lr_layer1': 0.006684020635943519, 'lr_layer2': 0.00012094419305929309}
+Rank 3:
+  Value: 0.9513333333333334
+  Params: {'optimizer': 'adam', 'T1': 20, 'T2': 6, 'batch_size': 64, 'beta2': 0.5, 'lr_layer1': 0.004354348967346732, 'lr_layer2': 3.469147826460247e-05}
+Rank 4:
+  Value: 0.9510833333333333
+  Params: {'optimizer': 'adam', 'T1': 10, 'T2': 2, 'batch_size': 64, 'beta2': 0.2, 'lr_layer1': 0.006643519079764593, 'lr_layer2': 0.00018000663735447502}
+Rank 5:
+  Value: 0.9496666666666667
+  Params: {'optimizer': 'adam', 'T1': 15, 'T2': 6, 'batch_size': 64, 'beta2': 0.30000000000000004, 'lr_layer1': 0.002309451900686621, 'lr_layer2': 2.8595694694883697e-05}
+
+
+#EXEC 2 -> n=50, RON
+Top 5 Best Trials:
+Rank 1:
+  Value: 0.7891666666666667
+  Params: {'T1': 30, 'T2': 14, 'eps_min': 1.0, 'eps_max': 1.2, 'gamma_min': 0.4, 'gamma_max': 1.6, 'tau': 0.7000000000000001, 'lr_layer1': 2.431740427603811e-05, 'lr_layer2': 0.09562778295702871}
+Rank 2:
+  Value: 0.7374166666666667
+  Params: {'T1': 30, 'T2': 6, 'eps_min': 0.5, 'eps_max': 1.6, 'gamma_min': 0.4, 'gamma_max': 1.8, 'tau': 0.6000000000000001, 'lr_layer1': 0.020379137079424098, 'lr_layer2': 0.0006474447785399457}
+Rank 3:
+  Value: 0.73
+  Params: {'T1': 35, 'T2': 2, 'eps_min': 0.6000000000000001, 'eps_max': 2.0, 'gamma_min': 1.0, 'gamma_max': 1.7000000000000002, 'tau': 0.6000000000000001, 'lr_layer1': 0.0002003445255351809, 'lr_layer2': 0.08838815577085009}
+Rank 4:
+  Value: 0.7293333333333333
+  Params: {'T1': 35, 'T2': 2, 'eps_min': 0.6000000000000001, 'eps_max': 2.0, 'gamma_min': 0.30000000000000004, 'gamma_max': 1.7000000000000002, 'tau': 0.5, 'lr_layer1': 0.00018455893221292865, 'lr_layer2': 0.07993116860296583}
+Rank 5:
+  Value: 0.72525
+  Params: {'T1': 35, 'T2': 2, 'eps_min': 0.6000000000000001, 'eps_max': 2.0, 'gamma_min': 0.4, 'gamma_max': 1.7000000000000002, 'tau': 0.6000000000000001, 'lr_layer1': 0.00025065472304476187, 'lr_layer2': 0.04811629170028368}
+
+#EXEC 33 -> n=15, RON
+Top 5 Best Trials:
+Rank 1:
+  Value: 0.8950833333333333
+  Params: {'T1': 160, 'T2': 35, 'beta2': 0.30000000000000004, 'eps_min': 0.9, 'gamma_min': 0.7000000000000001, 'tau': 0.6, 'eps_max': 2.3000000000000003, 'gamma_max': 0.9000000000000001, 'lr_layer1': 0.09448203289497677, 'lr_layer2': 0.00014707150300267023}
+Rank 2:
+  Value: 0.8524166666666667
+  Params: {'T1': 20, 'T2': 44, 'beta2': 0.8, 'eps_min': 1.3000000000000003, 'gamma_min': 0.7000000000000001, 'tau': 0.7000000000000001, 'eps_max': 2.3000000000000003, 'gamma_max': 1.9000000000000004, 'lr_layer1': 0.06726685689895602, 'lr_layer2': 9.998155245898229e-05}
+Rank 3:
+  Value: 0.8268333333333333
+  Params: {'T1': 140, 'T2': 32, 'beta2': 0.30000000000000004, 'eps_min': 0.9, 'gamma_min': 1.9, 'tau': 0.6, 'eps_max': 2.3000000000000003, 'gamma_max': 2.9, 'lr_layer1': 0.08784377965569044, 'lr_layer2': 0.00018623901224544008}
+Rank 4:
+  Value: 0.7903333333333333
+  Params: {'T1': 40, 'T2': 26, 'beta2': 0.30000000000000004, 'eps_min': 0.1, 'gamma_min': 1.5000000000000002, 'tau': 1.0, 'eps_max': 2.5000000000000004, 'gamma_max': 2.9000000000000004, 'lr_layer1': 0.07613714804256465, 'lr_layer2': 0.00025162175178102735}
+Rank 5:
+  Value: 0.7014166666666667
+  Params: {'T1': 140, 'T2': 35, 'beta2': 0.6000000000000001, 'eps_min': 1.1, 'gamma_min': 0.7000000000000001, 'tau': 0.6, 'eps_max': 2.1, 'gamma_max': 1.1, 'lr_layer1': 1.2266090762624498e-05, 'lr_layer2': 0.004119272537257729}
+
+
+  python main.py --model RON --task MNIST --archi 784 512 10 --optim sgd --lrs 0.09448203289497677 0.00014707150300267023 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 160 --T2 35 --mbs 64 --alg EP --betas 0.0 0.3 --loss mse --gamma_min 0.7 --gamma_max 0.9 --eps_min 0.9 --eps_max 2.3 --tau 0.6
+
+#EXEC 4 -> n=115, RON
+Trial 96 finished with value: 0.9704166666666667 and parameters: {'optimizer': 'adam', 'T1': 230, 'T2': 40, 'beta2': 0.9, 'eps_min': 0.1, 'gamma_min': 0.9, 'tau': 0.6, 'eps_max': 1.3000000000000003, 'gamma_max': 1.1, 'lr_layer1': 0.002819205271291557, 'lr_layer2': 0.00046241274132968415}.
+Trial 115 finished with value: 0.9724166666666667 and parameters: {'optimizer': 'adam', 'T1': 230, 'T2': 55, 'beta2': 1.0, 'eps_min': 0.5, 'gamma_min': 0.9, 'tau': 0.30000000000000004, 'eps_max': 0.9, 'gamma_max': 1.5, 'lr_layer1': 0.002463875834300521, 'lr_layer2': 0.0007246611741506864}.
+Trial 30 finished with value: 0.9715 and parameters: {'optimizer': 'adam', 'T1': 230, 'T2': 100, 'beta2': 0.6000000000000001, 'eps_min': 1.9, 'gamma_min': 1.7000000000000002, 'tau': 0.5, 'eps_max': 2.5, 'gamma_max': 1.9000000000000001, 'lr_layer1': 0.003204579710006769, 'lr_layer2': 0.00271323233348481}.
+Trial 32 finished with value: 0.9721666666666666 and parameters: {'optimizer': 'adam', 'T1': 230, 'T2': 95, 'beta2': 0.6000000000000001, 'eps_min': 1.7000000000000002, 'gamma_min': 1.7000000000000002, 'tau': 0.5, 'eps_max': 2.5, 'gamma_max': 2.5, 'lr_layer1': 0.0031155257455079957, 'lr_layer2': 0.0027259514567084214}.
+Trial 100 finished with value: 0.9684166666666667 and parameters: {'optimizer': 'adam', 'T1': 230, 'T2': 60, 'beta2': 0.30000000000000004, 'eps_min': 0.5, 'gamma_min': 0.7000000000000001, 'tau': 0.30000000000000004, 'eps_max': 1.7000000000000002, 'gamma_max': 1.9000000000000004, 'lr_layer1': 0.003359238319475049, 'lr_layer2': 0.0005305518784401723}.
+
+#EXEC 5 -> n=250, RON
+Top 5 Best Trials:
+Rank 1:
+  Value: 0.95775
+  Params: {'optimizer': 'adam', 'eps_min': 1.9, 'gamma_min': 1.9, 'tau': 0.4, 'eps_max': 1.9, 'gamma_max': 2.3}
+Rank 2:
+  Value: 0.9550833333333333
+  Params: {'optimizer': 'adam', 'eps_min': 1.7000000000000002, 'gamma_min': 1.9, 'tau': 0.4, 'eps_max': 1.9000000000000001, 'gamma_max': 2.3}
+Rank 3:
+  Value: 0.9549166666666666
+  Params: {'optimizer': 'adam', 'eps_min': 1.7000000000000002, 'gamma_min': 1.9, 'tau': 0.4, 'eps_max': 1.9000000000000001, 'gamma_max': 2.3}
+Rank 4:
+  Value: 0.9548333333333333
+  Params: {'optimizer': 'adam', 'eps_min': 1.7000000000000002, 'gamma_min': 1.9, 'tau': 0.4, 'eps_max': 1.9000000000000001, 'gamma_max': 2.1}
+Rank 5:
+  Value: 0.9548333333333333
+  Params: {'optimizer': 'adam', 'eps_min': 1.7000000000000002, 'gamma_min': 1.9, 'tau': 0.4, 'eps_max': 1.9000000000000001, 'gamma_max': 2.3}
+
+python main.py --model RON --task MNIST --archi 784 512 10 --optim adam --lrs 0.01 0.01 --mmt 0.0 --epochs 10 --act my_hard_sig --T1 20 --T2 5 --mbs 64 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 1.9 --gamma_max 2.3 --eps_min 1.9 --eps_max 1.9 --tau 0.4
+
+# EXEC 6 -> n=105, RON & CIFAR10
+Trial 16 finished with value: 0.4798 and parameters: {'T1': 180, 'T2': 28, 'eps_min': 0.4, 'gamma_min': 0.2, 'tau': 0.8, 'eps_max': 1.6, 'gamma_max': 1.4000000000000001}.
+Trial 29 finished with value: 0.4831 and parameters: {'T1': 180, 'T2': 49, 'eps_min': 1.4000000000000001, 'gamma_min': 0.4, 'tau': 0.8, 'eps_max': 2.0000000000000004, 'gamma_max': 1.2000000000000002}.
+Trial 86 finished with value: 0.4875 and parameters: {'T1': 280, 'T2': 28, 'eps_min': 1.6, 'gamma_min': 0.4, 'tau': 0.7, 'eps_max': 2.2, 'gamma_max': 1.0}.
+Trial 88 finished with value: 0.4763 and parameters: {'T1': 280, 'T2': 31, 'eps_min': 1.4000000000000001, 'gamma_min': 0.4, 'tau': 0.7, 'eps_max': 2.0000000000000004, 'gamma_max': 1.4000000000000001}.
+
+# EXEC 7 -> n=100, RON & CIFAR10
+Top 5 Best Trials:
+Rank 1:
+  Value: 0.3232
+  Params: {'T1': 280, 'T2': 70, 'eps_min': 0.2, 'gamma_min': 0.6, 'eps_max': 0.6, 'gamma_max': 3.2, 'weight_decay': 4.660824513471167e-06}
+Rank 2:
+  Value: 0.3125
+  Params: {'T1': 320, 'T2': 60, 'eps_min': 0.2, 'gamma_min': 1.8, 'eps_max': 0.6, 'gamma_max': 3.0, 'weight_decay': 5.538598449583666e-06}
+Rank 3:
+  Value: 0.3105
+  Params: {'T1': 320, 'T2': 60, 'eps_min': 0.2, 'gamma_min': 1.8, 'eps_max': 1.0, 'gamma_max': 2.8, 'weight_decay': 7.1706504887605185e-06}
+Rank 4:
+  Value: 0.3091
+  Params: {'T1': 280, 'T2': 60, 'eps_min': 0.2, 'gamma_min': 1.0, 'eps_max': 0.6, 'gamma_max': 3.2, 'weight_decay': 7.3181544337031185e-06}
+Rank 5:
+  Value: 0.3072
+  Params: {'T1': 280, 'T2': 60, 'eps_min': 0.2, 'gamma_min': 1.0, 'eps_max': 0.6, 'gamma_max': 3.0, 'weight_decay': 5.13612534914729e-06}
+
+  python main.py --model RON --task CIFAR10 --archi 3072 512 512 10 --optim adam --lrs 0.1 0.1 0.1 --mmt 0.0 --epochs 20 --act my_hard_sig --T1 320 --T2 60 --mbs 256 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 1.8 --gamma_max 2.8 --eps_min 0.2 --eps_max 1.0 --tau 0.8 --use-weight-decay --weight-decay 7.1706504887605185e-06
+
+
+
+# RON_TS PD
+Top 5 Best Trials:
+Rank 1: Value: 0.2567181246426529
+  Params: {'eps_min': 1.2, 'gamma_min': 1.6, 'eps_max': 2.0, 'gamma_max': 2.2, 'lr': 0.000198151100072105}
+Rank 2: Value: 0.214694110920526
+  Params: {'eps_min': 1.0, 'gamma_min': 1.6, 'eps_max': 1.5999999999999999, 'gamma_max': 2.2, 'lr': 0.0008178045354755862}
+Rank 3: Value: 0.20668953687821612
+  Params: {'eps_min': 0.6000000000000001, 'gamma_min': 1.0, 'eps_max': 2.0, 'gamma_max': 1.7999999999999998, 'lr': 0.00012331642300112542}
+Rank 4: Value: 0.2029731275014294
+  Params: {'eps_min': 1.0, 'gamma_min': 0.4, 'eps_max': 2.0, 'gamma_max': 0.8, 'lr': 0.00020614825530842665}
+Rank 5: Value: 0.1895368782161235
+  Params: {'eps_min': 1.2, 'gamma_min': 1.2, 'eps_max': 2.0, 'gamma_max': 1.8, 'lr': 0.0037052730359984874}
+
+python main.py --model RON_TS --task PD --archi 2 512 512 10 --optim sgd --lrs 0.0037 0.0037 0.0037 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 100 --T2 15 --mbs 128 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 1.2 --gamma_max 1.8 --eps_min 1.2 --eps_max 2.0 --tau 0.7
+
+
+Top 5 Best Trials:
+archi = [2, 512, 10], T1 = 100, T2 = 15
+Rank 1: Value: 0.2787307032590051
+  Params: {'eps_min': 1.0, 'gamma_min': 2.8000000000000003, 'eps_max': 1.4, 'gamma_max': 3.2, 'lr': 0.002263026856235867}
+Rank 2: Value: 0.27501429388221843
+  Params: {'eps_min': 0.8, 'gamma_min': 2.4000000000000004, 'eps_max': 1.6, 'gamma_max': 3.0000000000000004, 'lr': 0.0019785009782314865}
+Rank 3: Value: 0.25900514579759865
+  Params: {'eps_min': 1.0, 'gamma_min': 2.4000000000000004, 'eps_max': 1.4, 'gamma_max': 3.0000000000000004, 'lr': 0.0030512076701092964}
+Rank 4: Value: 0.25414522584333904
+  Params: {'eps_min': 0.8, 'gamma_min': 2.2, 'eps_max': 1.6, 'gamma_max': 2.8000000000000003, 'lr': 0.0019377622632706561}
+Rank 5: Value: 0.2504288164665523
+  Params: {'eps_min': 1.0, 'gamma_min': 2.6000000000000005, 'eps_max': 1.4, 'gamma_max': 3.0000000000000004, 'lr': 0.0031497704998275132}
+
+
+hcoRON, PD
+Top 5 Best Trials:
+Rank 1: Value: 0.9491137793024585
+  Params: {'eps_min': 0.2, 'gamma_min': 0.8, 'archi': [16, 256, 10], 'T1': 120, 'T2': 10, 'eps_max': 1.2, 'gamma_max': 1.2, 'lr': 0.0015802676837111326}
+Rank 2: Value: 0.9485420240137221
+  Params: {'eps_min': 0.2, 'gamma_min': 0.8, 'archi': [16, 256, 10], 'T1': 120, 'T2': 10, 'eps_max': 1.2, 'gamma_max': 1.2, 'lr': 0.001598004586794296}
+Rank 3: Value: 0.9396798170383076
+  Params: {'eps_min': 0.4, 'gamma_min': 0.4, 'archi': [16, 256, 10], 'T1': 140, 'T2': 15, 'eps_max': 1.6, 'gamma_max': 0.8, 'lr': 0.0006353967722260053}
+Rank 4: Value: 0.9391080617495712
+  Params: {'eps_min': 0.4, 'gamma_min': 0.8, 'archi': [16, 256, 10], 'T1': 100, 'T2': 10, 'eps_max': 1.4, 'gamma_max': 1.4, 'lr': 0.0049387939517026285}
+Rank 5: Value: 0.9385363064608347
+  Params: {'eps_min': 0.2, 'gamma_min': 0.6, 'archi': [16, 256, 10], 'T1': 140, 'T2': 15, 'eps_max': 0.6, 'gamma_max': 1.4, 'lr': 0.0007263562332886767}
+
+
+MLP_TS, PD
+Top 5 Best Trials:
+Rank 1: Value: 0.2864493996569468
+  Params: {'eps_min': 0.4, 'gamma_min': 2.0, 'T1': 100, 'T2': 20, 'rf': 1.0, 'eps_max': 2.2, 'gamma_max': 2.6, 'lr': 0.000195539669170901}
+Rank 2: Value: 0.26786735277301316
+  Params: {'eps_min': 1.0, 'gamma_min': 2.4, 'T1': 140, 'T2': 10, 'rf': 0.0, 'eps_max': 2.4, 'gamma_max': 3.4, 'lr': 0.00011781129634420329}
+Rank 3: Value: 0.2672955974842767
+  Params: {'eps_min': 1.2, 'gamma_min': 1.6, 'T1': 100, 'T2': 20, 'rf': 0.4, 'eps_max': 2.2, 'gamma_max': 2.8, 'lr': 0.0001667516779348666}
+Rank 4: Value: 0.2478559176672384
+  Params: {'eps_min': 0.2, 'gamma_min': 2.0, 'T1': 140, 'T2': 15, 'rf': 0.2, 'eps_max': 1.8, 'gamma_max': 2.6, 'lr': 0.0002023948494485936}
+Rank 5: Value: 0.24556889651229274
+  Params: {'eps_min': 0.2, 'gamma_min': 2.2, 'T1': 120, 'T2': 25, 'rf': 0.4, 'eps_max': 0.6, 'gamma_max': 2.8, 'lr': 0.00015549385419156436}
+
+
+MLP_TS, PD, rf=1.0
+Top 5 Best Trials:
+Rank 1: Value: 0.3050314465408805
+  Params: {'eps_min': 1.2, 'gamma_min': 0.6, 'T1': 80, 'T2': 20, 'eps_max': 2.8, 'gamma_max': 1.2, 'lr': 0.0012737017258230435}
+Rank 2: Value: 0.2804459691252144
+  Params: {'eps_min': 0.4, 'gamma_min': 2.4, 'T1': 200, 'T2': 20, 'eps_max': 2.2, 'gamma_max': 3.6, 'lr': 0.00013630285548045816}
+Rank 3: Value: 0.27815894797026874
+  Params: {'eps_min': 0.2, 'gamma_min': 2.0, 'T1': 120, 'T2': 30, 'eps_max': 1.4, 'gamma_max': 2.8, 'lr': 0.0001974389665291948}
+Rank 4: Value: 0.2770154373927959
+  Params: {'eps_min': 0.2, 'gamma_min': 1.8, 'T1': 100, 'T2': 25, 'eps_max': 1.0, 'gamma_max': 4.0, 'lr': 0.0008578811208546756}
+Rank 5: Value: 0.2741566609491138
+  Params: {'eps_min': 1.4, 'gamma_min': 0.4, 'T1': 140, 'T2': 40, 'eps_max': 2.4, 'gamma_max': 1.8, 'lr': 0.0003665607743560948}
+
+
+MLP 16 256 10, PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.2329902801600915
+  Params: {'T1': 200, 'T2': 60, 'lr': 0.00025309120820962987}
+Rank 2: Value: 0.22069754145225842
+  Params: {'T1': 160, 'T2': 35, 'lr': 0.00040285545697858944}
+Rank 3: Value: 0.2169811320754717
+  Params: {'T1': 120, 'T2': 30, 'lr': 0.00027147877530402944}
+Rank 4: Value: 0.19068038879359633
+  Params: {'T1': 200, 'T2': 40, 'lr': 0.00018231673898184796}
+Rank 5: Value: 0.19039451114922812
+  Params: {'T1': 40, 'T2': 35, 'lr': 0.0004010854331895039}
+
+MLP 16 1024 10, PD
+Top 5 Best Trials:
+Rank 1: Value: 0.19382504288164665
+  Params: {'T1': 260, 'T2': 60, 'lr': 0.003930515719429955}
+Rank 2: Value: 0.17810177244139508
+  Params: {'T1': 80, 'T2': 80, 'lr': 0.00800155570196892}
+Rank 3: Value: 0.1758147512864494
+  Params: {'T1': 120, 'T2': 75, 'lr': 0.005370681166290967}
+Rank 4: Value: 0.1672384219554031
+  Params: {'T1': 20, 'T2': 65, 'lr': 0.0001593516527416398}
+Rank 5: Value: 0.1652372784448256
+  Params: {'T1': 60, 'T2': 10, 'lr': 0.00012585860214298623}
+
+MLP_TS 2 1024 10, PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.3141795311606632
+  Params: {'T1': 80, 'T2': 15, 'lr': 0.022653001963668474}
+Rank 2: Value: 0.274442538593482
+  Params: {'T1': 180, 'T2': 20, 'lr': 0.03268990534661633}
+Rank 3: Value: 0.26615208690680386
+  Params: {'T1': 60, 'T2': 60, 'lr': 0.02141002889192682}
+Rank 4: Value: 0.25757575757575757
+  Params: {'T1': 60, 'T2': 10, 'lr': 0.02544156556601993}
+Rank 5: Value: 0.2518582046883934
+  Params: {'T1': 60, 'T2': 70, 'lr': 0.025744926132593344}
+
+hcoRON_TS 2 256 10, PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.25414522584333904
+  Params: {'eps_min': 1.2, 'gamma_min': 0.6000000000000001, 'T1': 140, 'T2': 10, 'eps_max': 1.8, 'gamma_max': 1.8, 'lr': 0.0014782561811563287}
+Rank 2: Value: 0.2169811320754717
+  Params: {'eps_min': 0.2, 'gamma_min': 2.0, 'T1': 40, 'T2': 10, 'eps_max': 1.6, 'gamma_max': 3.4, 'lr': 0.004822528369644437}
+Rank 3: Value: 0.20468839336763864
+  Params: {'eps_min': 0.4, 'gamma_min': 0.2, 'T1': 140, 'T2': 10, 'eps_max': 0.8, 'gamma_max': 0.6000000000000001, 'lr': 0.006376107053588571}
+Rank 4: Value: 0.1975414522584334
+  Params: {'eps_min': 0.4, 'gamma_min': 0.2, 'T1': 140, 'T2': 10, 'eps_max': 0.8, 'gamma_max': 0.6000000000000001, 'lr': 0.005430838028404948}
+Rank 5: Value: 0.19611206403659234
+  Params: {'eps_min': 1.2, 'gamma_min': 1.2, 'T1': 140, 'T2': 10, 'eps_max': 2.0, 'gamma_max': 1.8, 'lr': 0.0013954090698021376}
+
+MLP_TS 2 256 10, PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.3056032018296169
+  Params: {'T2': 65, 'rf': 0.4, 'lr': 0.04264448056328416}
+Rank 2: Value: 0.2747284162378502
+  Params: {'T2': 50, 'rf': 0.6000000000000001, 'lr': 0.06722191840183935}
+Rank 3: Value: 0.26615208690680386
+  Params: {'T2': 65, 'rf': 0.4, 'lr': 0.041415351711849936}
+Rank 4: Value: 0.25757575757575757
+  Params: {'T2': 65, 'rf': 0.8, 'lr': 0.03992702777325004}
+Rank 5: Value: 0.25614636935391655
+  Params: {'T2': 65, 'rf': 0.2, 'lr': 0.05215500974410975}
+
+MLP 16 256 10 (T1=100, T2=20), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.9110920526014865
+  Params: {'lr': 0.09479073533230122}
+Rank 2: Value: 0.9010863350485993
+  Params: {'lr': 0.094181752749125}
+Rank 3: Value: 0.8979416809605489
+  Params: {'lr': 0.05458332243410198}
+Rank 4: Value: 0.8962264150943396
+  Params: {'lr': 0.08899492544283318}
+Rank 5: Value: 0.8910806174957119
+  Params: {'lr': 0.0811223298991313}
+
+MLP_TS 2 256 10 (rf=1.0), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.24585477415666096
+  Params: {'T1': 80, 'T2': 35, 'lr': 0.025818584792334134}
+Rank 2: Value: 0.23556317895940537
+  Params: {'T1': 40, 'T2': 35, 'lr': 0.0026586018130870708}
+Rank 3: Value: 0.22870211549456831
+  Params: {'T1': 20, 'T2': 10, 'lr': 0.0654975346801438}
+Rank 4: Value: 0.22641509433962265
+  Params: {'T1': 140, 'T2': 15, 'lr': 0.0006121318854103419}
+Rank 5: Value: 0.20268724985706119
+  Params: {'T1': 80, 'T2': 10, 'lr': 0.042370595036278276}
+
+MLP_TS 2 1024 10 (rf=1.0), PD:

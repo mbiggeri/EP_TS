@@ -476,7 +476,8 @@ def train_epoch_TS(
     device,
     criterion,
     reset_factor=0.0,
-    id=None
+    id=None,
+    ron=False
 ):
     """
     Train an epoch on time-series data, updating weights at every timestep.
@@ -498,7 +499,7 @@ def train_epoch_TS(
 
         B, T_seq, D = x.shape
         
-        if isinstance(model, P_MLP):
+        if not ron:
             neurons = None  # single state for MLP
             for t in range(T_seq):
                 x_t = x[:, t, :]
@@ -595,7 +596,7 @@ def evaluate(model, loader, T, device, ron=False):
     return acc
 
 
-def evaluate_TS(model, loader, T, device):
+def evaluate_TS(model, loader, T, device, ron=False):
     """
     Evaluate the model on time-series data.
     - For a single-state network (e.g. P_MLP), we use one state.
@@ -612,7 +613,7 @@ def evaluate_TS(model, loader, T, device):
         y = y.to(device)
         B, T_seq, D = x.shape
 
-        if hasattr(model, 'P_MLP') and isinstance(model, P_MLP):
+        if not ron:
             # Single-state network (e.g., P_MLP)
             neurons = model.init_neurons(B, device)
             for t in range(T_seq):
