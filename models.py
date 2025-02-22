@@ -569,6 +569,10 @@ def train_epoch_TS(
                 )
 
 
+'''
+EVALUATE
+'''
+
 def evaluate(model, loader, T, device, ron=False):
     # Evaluate the model on a dataloader with T steps for the dynamics
     model.eval()
@@ -637,3 +641,182 @@ def evaluate_TS(model, loader, T, device, ron=False):
 
     acc = correct / total
     return acc
+
+
+'''
+CONVERGENCE
+'''
+
+def visualize_convergence(model, loader, T_ep, device, ron=False, name=None):
+    """
+    Visualize the convergence of a non-time-series model's state to a fixed point,
+    strictly storing differences between consecutive states.
+    """
+    model.eval()  # Set model to evaluation mode
+
+    # Retrieve one batch from the loader for visualization.
+    for x, y in loader:
+        x, y = x.to(device), y.to(device)
+        break
+
+    differences = []
+
+    if not ron:
+        # Single-state model
+        # 1) Initialize the state and store as 'prev_state'
+        neurons = model.init_neurons(x.size(0), device)
+        prev_state = neurons[-1].clone().detach()  # The initial state (iteration 0)
+
+        # 2) Run T_ep extra iterations
+        for _ in range(T_ep):
+            # A single EP step
+            neurons = model(x, y, neurons, 1, beta=0.0)
+            current_state = neurons[-1]
+            
+            # Difference between current and previous
+            diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
+            differences.append(diff)
+            
+            prev_state = current_state.clone().detach()
+
+    else:
+        # Two-state (RON)
+        # 1) Initialize the states
+        neuronsz, neuronsy = model.init_neurons(x.size(0), device)
+        prev_state = neuronsy[-1].clone().detach()  # The initial Y-state (iteration 0)
+
+        # 2) Run T_ep iterations
+        for _ in range(T_ep):
+            # A single EP step
+            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, 1, beta=0.0)
+            current_state = neuronsy[-1]
+            
+            # Difference
+            diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
+            differences.append(diff)
+            
+            prev_state = current_state.clone().detach()
+
+    # ------------------------- PLOTTING PART -------------------------
+    iterations = np.arange(1, T_ep + 1)
+
+    plt.figure(figsize=(10, 6))  # Larger figure
+    plt.plot(iterations, differences, marker='o', markersize=3, linestyle='-')
+    plt.xlabel('EP Iteration (Step)', fontsize=12)
+    plt.ylabel('Mean L2 Norm Difference', fontsize=12)
+    if name:
+        plt.title(name, fontsize=14)
+    else:
+        plt.title('Convergence of Model to a Fixed Point', fontsize=14)
+
+    # Log scale on the y-axis to reveal exponential decay
+    plt.yscale('linear')
+
+    # Show fewer x-axis ticks (up to 10 evenly spaced)
+    num_ticks = min(T_ep, 10)
+    xtick_positions = np.linspace(1, T_ep, num_ticks, dtype=int)
+    plt.xticks(xtick_positions, rotation=5)
+
+    # Add a grid
+    plt.grid(True, which='both', linestyle='--', alpha=0.7)
+
+    # Tighten layout and display
+    plt.tight_layout()
+    plt.show()
+    # ----------------------------------------------------------------
+
+    return differences
+
+
+def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name=None):
+    """
+    Visualize the convergence of a time-series model's state to a fixed point
+    (in the same way 'evaluate_TS' processes data).
+    
+    Args:
+        model: The time-series neural network model (single-state or RON).
+        loader: Dataloader providing evaluation samples.
+        T_ep: Number of "mini-steps" (EP iterations) per time step to measure convergence.
+        device: Torch device to run the model on.
+        ron: Whether the model is RON (two states: z, y) or not (single state).
+        
+    Returns:
+        A list (or 1D array) of mean L2 norm differences between consecutive
+        states across all time steps and EP iterations.
+    """
+    model.eval()
+    
+    # Grab a single batch for visualization
+    x, y = next(iter(loader))
+    x, y = x.to(device), y.to(device)
+    B, T_seq, D = x.shape
+    
+    # We store the difference at each "mini-step" across the entire sequence
+    differences = []
+    
+    if not ron:
+        # ------------------ Single-state TS model ------------------
+        # 1) Initialize the state only once, as in 'evaluate_TS'
+        neurons = model.init_neurons(B, device)
+        
+        # 2) Loop over the time dimension
+        for t in range(T_seq):
+            # Extract the time-slice
+            x_t = x[:, t, :]
+            # Use per-timestep label if available
+            if (y.ndim > 1) and (y.size(1) == T_seq):
+                y_t = y[:, t]
+            else:
+                y_t = y
+            
+            # 3) For each time step, do T_ep "mini-steps" at beta=0
+            #    measuring the difference between consecutive states
+            for _ in range(T_ep):
+                prev_state = neurons[-1].clone().detach()
+                # One step of EP dynamics
+                neurons = model(x_t, y_t, neurons, 1, beta=0.0)
+                current_state = neurons[-1]
+                # Measure norm of difference
+                diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
+                differences.append(diff)
+                
+    else:
+        # ------------------ Two-state (RON) TS model ------------------
+        neuronsz, neuronsy = model.init_neurons(B, device)
+        
+        for t in range(T_seq):
+            x_t = x[:, t, :]
+            if (y.ndim > 1) and (y.size(1) == T_seq):
+                y_t = y[:, t]
+            else:
+                y_t = y
+            
+            for _ in range(T_ep):
+                prev_state = neuronsy[-1].clone().detach()
+                # One step of EP (RON) dynamics
+                neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, 1, beta=0.0)
+                current_state = neuronsy[-1]
+                diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
+                differences.append(diff)
+    
+    # ------------------------- PLOTTING PART -------------------------
+    iterations = np.arange(len(differences)) + 1  # 1-based indexing
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations, differences, marker='o', markersize=3, linestyle='-')
+    plt.xlabel('Global EP Step (across all time steps)', fontsize=12)
+    plt.ylabel('Mean L2 Norm Difference', fontsize=12)
+    plt.title('Time-Series Convergence to a Fixed Point', fontsize=14)
+    
+    plt.yscale('linear')
+    # Show fewer x-axis ticks
+    max_ticks = 10
+    if len(iterations) > max_ticks:
+        xtick_positions = np.linspace(1, len(iterations), max_ticks, dtype=int)
+        plt.xticks(xtick_positions, rotation=5)
+    
+    plt.grid(True, which='both', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.show()
+    # ----------------------------------------------------------------
+    
+    return differences

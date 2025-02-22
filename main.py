@@ -7,11 +7,12 @@ import torchvision
 import argparse
 import matplotlib.pyplot as plt
 from models import (make_pools, P_MLP, RON,
-                    my_init, my_sigmoid, my_hard_sig, ctrd_hard_sig, hard_sigmoid, train_epoch, train_epoch_TS, evaluate, evaluate_TS)
+                    my_init, my_sigmoid, my_hard_sig, ctrd_hard_sig, hard_sigmoid, 
+                    train_epoch, train_epoch_TS, evaluate, evaluate_TS, visualize_convergence, visualize_convergence_TS)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_root', type=str, default='/home/gibberi/Desktop/Tesi/Datasets')
+parser.add_argument('--data_root', type=str, default='/Users/michaelbiggeri/Desktop/Tesi/Codice/datasets')
 parser.add_argument('--model', type=str, default='MLP', metavar='m', help='model', choices=['RON', 'RON_TS', 'MLP', 'MLP_TS'])
 parser.add_argument('--task', type=str, default='MNIST', metavar='t', help='task', choices=['MNIST', 'CIFAR10', 'PD'])
 
@@ -64,6 +65,9 @@ parser.add_argument('--weight-decay', type=float, default=0.0, metavar='wd',
                     help='Weight decay (L2 regularization) factor (default: 0.0)')
 parser.add_argument('--use-weight-decay', default=False, action='store_true',
                     help='Enable L2 regularization (default: False)')
+
+# Convergence evaluation
+parser.add_argument('--convergence', action='store_true', help='show the convergence graph at the fixed point')
 
 
 args = parser.parse_args()
@@ -248,6 +252,14 @@ print('\ntraining algorithm : ', args.alg, '\n')
 TRAINING MODELLO
 '''
 eval_loader = test_loader if args.use_test else valid_loader
+
+# Initial Convergence evaluation
+if args.convergence:
+    if compact:
+        differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
+    else:
+        differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
+
 if __name__ == "__main__":
     # Creo una lista globale dove accumulare i dati di norma per TUTTE le epoche
     all_hidden_layer_norms = []
@@ -269,34 +281,6 @@ if __name__ == "__main__":
         else:
             test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
         print('\nTest accuracy :', round(test_acc, 2))
-        
-        # Plot della norma degli hidden layers:
-        # Trasponi i dati per separare le norme di ciascun layer
-        #hidden_layer_norms = list(zip(*hidden_layer_norms))
-
-        # Salvo i valori di quest'epoca in all_hidden_layer_norms
-        # Così alla fine avrò tutte le iterazioni di tutte le epoche
-        #all_hidden_layer_norms.extend(hidden_layer_norms)
-        
-    
-    # A FINE training, faccio un grafico unico
-    # --------------------------------------------------
-    # `all_hidden_layer_norms` è una lista lunga quanto tutte le iterazioni di tutte le epoche
-    # Ogni elemento è, di solito, un elenco con la norma di ciascun layer
-    # Quindi faccio la trasposizione per separare i layer
-    '''
-    all_hidden_layer_norms = list(zip(*all_hidden_layer_norms))  
-
-    # Creo il grafico una sola volta, dopo tutte le epoche
-    for idx, layer_norms in enumerate(all_hidden_layer_norms):
-        plt.plot(layer_norms, label=f'Layer {idx + 1}')
-
-    plt.xlabel('Iterazioni globali (su tutte le epoche)')
-    plt.ylabel('Norma')
-    plt.title('Norme degli Hidden Layer durante l\'addestramento')
-    plt.legend()
-    plt.show()
-    '''
 
     # Training accuracy
     if compact:
@@ -311,3 +295,10 @@ if __name__ == "__main__":
     else:
         test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
     print('\nTest accuracy :', round(test_acc, 2))
+    
+    # Final Convergence evaluation
+    if args.convergence:
+        if compact:
+            differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
+        else:
+            differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
