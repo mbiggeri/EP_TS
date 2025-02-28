@@ -647,10 +647,10 @@ def evaluate_TS(model, loader, T, device, ron=False):
 CONVERGENCE
 '''
 
-def visualize_convergence(model, loader, T_ep, device, ron=False, name=None):
+def visualize_convergence(model, loader, T_ep, device, ron=False, name=None, beta=0.5):
     """
     Visualize the convergence of a non-time-series model's state to a fixed point,
-    strictly storing differences between consecutive states.
+    storing differences between consecutive states.
     """
     model.eval()  # Set model to evaluation mode
 
@@ -670,7 +670,7 @@ def visualize_convergence(model, loader, T_ep, device, ron=False, name=None):
         # 2) Run T_ep extra iterations
         for _ in range(T_ep):
             # A single EP step
-            neurons = model(x, y, neurons, 1, beta=0.0)
+            neurons = model(x, y, neurons, 1, beta)
             current_state = neurons[-1]
             
             # Difference between current and previous
@@ -688,7 +688,7 @@ def visualize_convergence(model, loader, T_ep, device, ron=False, name=None):
         # 2) Run T_ep iterations
         for _ in range(T_ep):
             # A single EP step
-            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, 1, beta=0.0)
+            neuronsz, neuronsy = model(x, y, neuronsz, neuronsy, 1, beta)
             current_state = neuronsy[-1]
             
             # Difference
@@ -728,7 +728,7 @@ def visualize_convergence(model, loader, T_ep, device, ron=False, name=None):
     return differences
 
 
-def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name=None):
+def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name=None, beta=0.0):
     """
     Visualize the convergence of a time-series model's state to a fixed point
     (in the same way 'evaluate_TS' processes data).
@@ -774,7 +774,7 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name=None):
             for _ in range(T_ep):
                 prev_state = neurons[-1].clone().detach()
                 # One step of EP dynamics
-                neurons = model(x_t, y_t, neurons, 1, beta=0.0)
+                neurons = model(x_t, y_t, neurons, 1, beta)
                 current_state = neurons[-1]
                 # Measure norm of difference
                 diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
@@ -794,7 +794,7 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name=None):
             for _ in range(T_ep):
                 prev_state = neuronsy[-1].clone().detach()
                 # One step of EP (RON) dynamics
-                neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, 1, beta=0.0)
+                neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, 1, beta)
                 current_state = neuronsy[-1]
                 diff = torch.norm(current_state - prev_state, p=2, dim=1).mean().item()
                 differences.append(diff)

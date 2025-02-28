@@ -256,9 +256,9 @@ eval_loader = test_loader if args.use_test else valid_loader
 # Initial Convergence evaluation
 if args.convergence:
     if compact:
-        differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
+        differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron, name="Pre-training convergence")
     else:
-        differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
+        differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron, name="Pre-training convergence")
 
 if __name__ == "__main__":
     # Creo una lista globale dove accumulare i dati di norma per TUTTE le epoche
@@ -281,6 +281,12 @@ if __name__ == "__main__":
         else:
             test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
         print('\nTest accuracy :', round(test_acc, 2))
+        
+        if args.convergence:
+            if compact:
+                differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
+            else:
+                differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
 
     # Training accuracy
     if compact:

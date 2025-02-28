@@ -274,4 +274,54 @@ Rank 4: Value: 0.22641509433962265
 Rank 5: Value: 0.20268724985706119
   Params: {'T1': 80, 'T2': 10, 'lr': 0.042370595036278276}
 
-MLP_TS 2 1024 10 (rf=1.0), PD:
+MLP_TS 2 256 10 (cel & tanh), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.30931961120640367
+  Params: {'lr': 0.0011185017061413048}
+Rank 2: Value: 0.25414522584333904
+  Params: {'lr': 0.09731542870098567}
+Rank 3: Value: 0.2504288164665523
+  Params: {'lr': 0.0007458520062385014}
+Rank 4: Value: 0.24585477415666096
+  Params: {'lr': 0.02965767814115998}
+Rank 5: Value: 0.24128073184676957
+  Params: {'lr': 0.0017535138618720645}
+
+MLP_TS 2 256 10 (T1 = 50, T2=20), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.32818753573470555
+  Params: {'act': 'mysig', 'loss': 'cel', 'lr': 0.00043817624311415373}
+Rank 2: Value: 0.2684391080617496
+  Params: {'act': 'ctrd_hard_sig', 'loss': 'cel', 'lr': 0.013640066226491668}
+Rank 3: Value: 0.230989136649514
+  Params: {'act': 'ctrd_hard_sig', 'loss': 'mse', 'lr': 0.026760765865735912}
+Rank 4: Value: 0.20697541452258433
+  Params: {'act': 'sigmoid', 'loss': 'cel', 'lr': 0.000651948827891762}
+Rank 5: Value: 0.2004002287021155
+  Params: {'act': 'mysig', 'loss': 'cel', 'lr': 0.0030564973706069774}
+
+RON_TS 2 256 10 (T1 = 50, T2=20), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.2658662092624357
+  Params: {'eps_min': 0.4, 'gamma_min': 2.0, 'act': 'my_hard_sig', 'loss': 'cel', 'eps_max': 1.2000000000000002, 'gamma_max': 2.6, 'lr': 0.014452157595310497}
+Rank 2: Value: 0.23127501429388223
+  Params: {'eps_min': 0.4, 'gamma_min': 2.4000000000000004, 'act': 'tanh', 'loss': 'mse', 'eps_max': 1.4000000000000001, 'gamma_max': 3.2, 'lr': 0.07813947850309917}
+Rank 3: Value: 0.22670097198399086
+  Params: {'eps_min': 1.2, 'gamma_min': 1.8, 'act': 'mysig', 'loss': 'mse', 'eps_max': 1.6, 'gamma_max': 2.2, 'lr': 0.01323942826922191}
+Rank 4: Value: 0.20011435105774728
+  Params: {'eps_min': 1.0, 'gamma_min': 1.6, 'act': 'my_hard_sig', 'loss': 'mse', 'eps_max': 1.4, 'gamma_max': 3.2, 'lr': 0.020322276229478874}
+Rank 5: Value: 0.19439679817038308
+  Params: {'eps_min': 0.4, 'gamma_min': 2.2, 'act': 'my_hard_sig', 'loss': 'cel', 'eps_max': 1.2000000000000002, 'gamma_max': 3.0, 'lr': 0.010045919159485729}
+
+RON_TS 2 256 10 (T1 = 50, T2=20, act=tanh, loss=cel), PD:
+Top 5 Best Trials:
+Rank 1: Value: 0.2367066895368782
+  Params: {'eps_min': 1.4, 'gamma_min': 0.8, 'eps_max': 2.1999999999999997, 'gamma_max': 1.6, 'lr': 0.15447530301944012}
+Rank 2: Value: 0.19210977701543738
+  Params: {'eps_min': 1.2000000000000002, 'gamma_min': 0.8, 'eps_max': 2.0, 'gamma_max': 2.0, 'lr': 0.20689982447853905}
+Rank 3: Value: 0.1815323041738136
+  Params: {'eps_min': 0.6000000000000001, 'gamma_min': 0.4, 'eps_max': 1.4, 'gamma_max': 2.8, 'lr': 0.0002534197144527815}
+Rank 4: Value: 0.17781589479702686
+  Params: {'eps_min': 1.4, 'gamma_min': 0.8, 'eps_max': 1.7999999999999998, 'gamma_max': 1.6, 'lr': 0.0013324123832940795}
+Rank 5: Value: 0.1320754716981132
+  Params: {'eps_min': 0.6000000000000001, 'gamma_min': 0.4, 'eps_max': 1.6, 'gamma_max': 3.2, 'lr': 0.03157772858826421}

@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='RON', metavar='m', 
                     choices=['RON', 'RON_TS', 'MLP', 'MLP_TS'],
                     help='Choose between RON, RON_TS, MLP, and MLP_TS')
-parser.add_argument('--data_root', type=str, default='/home/gibberi/Desktop/Tesi/Datasets', 
+parser.add_argument('--data_root', type=str, default='/Users/michaelbiggeri/Desktop/Tesi/Codice/datasets', 
                     help='Folder where datasets are saved/downloaded')
 parser.add_argument('--task', type=str, default='MNIST', metavar='t', 
                     choices=['MNIST', 'CIFAR10', 'PD'],
@@ -69,7 +69,7 @@ parser.add_argument('--seed', type=int, default=None, help='Global random seed')
 
 args = parser.parse_args()
 
-# usage example: python bayesianOpt.py --model MLP_TS --epochs 3 --task PD
+# usage example: python bayesianOpt.py --model RON_TS --epochs 3 --task PD --learn_oscillators
 
 '''
 DEVICE
@@ -132,15 +132,17 @@ OBJECTIVE FUNCTION FOR OPTUNA
 def objective(trial):
     # --- Hyperparameters to optimize
     opt_params = {
-        #'eps_min': trial.suggest_float('eps_min', 0.2, 1.6, step=0.2),
-        #'gamma_min': trial.suggest_float('gamma_min', 0.2, 3.0, step=0.2),
+        'eps_min': trial.suggest_float('eps_min', 0.0, 1.4, step=0.2),
+        'gamma_min': trial.suggest_float('gamma_min', 0.0, 2.0, step=0.4),
         #'archi': trial.suggest_categorical('archi', [[16, 64, 10], [16, 256, 10]]),
         #'T1': trial.suggest_int('T1', 20, 160, step=20),
         #'T2': trial.suggest_int('T2', 5, 40, step=5),
-        #'rf': trial.suggest_float('rf', 0.0, 1.0, step=0.2)
+        #'rf': trial.suggest_float('rf', 0.0, 1.0, step=0.2),
+        #'act': trial.suggest_categorical('act', ['mysig', 'sigmoid', 'tanh', 'hard_sigmoid', 'my_hard_sig', 'ctrd_hard_sig']),
+        #'loss': trial.suggest_categorical('loss', ['mse', 'cel'])
     }
-    #opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 2.8, step=0.2)
-    #opt_params['gamma_max'] = trial.suggest_float('gamma_max', opt_params['gamma_min'] + 0.4, 4.0, step=0.2)
+    opt_params['eps_max'] = trial.suggest_float('eps_max', opt_params['eps_min'] + 0.4, 3.0, step=0.2)
+    opt_params['gamma_max'] = trial.suggest_float('gamma_max', opt_params['gamma_min'] + 0.4, 4.0, step=0.4)
 
     # --- L2 regularization if enabled
     if args.use_weight_decay:
@@ -150,14 +152,14 @@ def objective(trial):
 
     # --- Fixed parameters (for training and network architecture)
     fixed_params = {
-        'T1': 100,
+        'T1': 50,
         'T2': 20,
         'betas': (0.0, 0.5),
-        'loss': 'mse',
+        'loss': 'cel',
         'tau': 0.7,
         'batch_size': 64,
-        'act': 'my_hard_sig',
-        'archi': [2, 256, 256, 10],
+        'act': 'tanh',
+        'archi': [2, 256, 10],
         'mmt': 0.9,
         'rf': 1.0
     }
@@ -211,7 +213,7 @@ def objective(trial):
     model.to(device)
 
     # --- Optimizer construction ---
-    lr = trial.suggest_float('lr', 1e-4, 1e-1, log=True)
+    lr = trial.suggest_float('lr', 1e-4, 1e0, log=True)
     optim_params = []
     for idx in range(len(model.synapses)):
         if args.wds is None:
@@ -232,8 +234,10 @@ def objective(trial):
     # --- Loss definition ---
     if params['loss'] == 'mse':
         criterion = torch.nn.MSELoss(reduction='none').to(device)
-    else:
+    elif params['loss'] == 'cel':
         criterion = torch.nn.CrossEntropyLoss(reduction='none').to(device)
+    else:
+        criterion = None
 
     # --- Training loop ---
     for epoch in range(args.epochs):
