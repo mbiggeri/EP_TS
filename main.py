@@ -69,6 +69,8 @@ parser.add_argument('--use-weight-decay', default=False, action='store_true',
 # Convergence evaluation
 parser.add_argument('--convergence', action='store_true', help='show the convergence graph at the fixed point')
 
+# Plotting accuracy and loss
+parser.add_argument('--plot', action='store_true', help='show accuracy and loss in a graph for every epoch')
 
 args = parser.parse_args()
 
@@ -261,11 +263,14 @@ if args.convergence:
         differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron, name="Pre-training convergence")
 
 if __name__ == "__main__":
-    # Creo una lista globale dove accumulare i dati di norma per TUTTE le epoche
-    all_hidden_layer_norms = []
+    # Liste per accumulare le metriche per ogni epoca
+    epoch_train_accs = []
+    epoch_train_losses = []
+    epoch_test_accs = []
+    epoch_test_losses = []
     
     for epoch in range(args.epochs):
-        # hidden_layer_norms != [] solo se non usiamo EP
+        # Epoch Training
         if compact:
             hidden_layer_norms = train_epoch(model=model, optimizer=optimizer, epoch_number=epoch, train_loader=train_loader, T1=args.T1, T2=args.T2, betas=betas, device=device,
                         criterion=criterion, alg=args.alg, random_sign=args.random_sign, thirdphase=args.thirdphase, cep_debug=args.cep_debug, ron=ron)
@@ -276,31 +281,31 @@ if __name__ == "__main__":
             if epoch < scheduler.T_max:
                 scheduler.step()
 
+        # Epoch Evaluation
         if compact:
-            test_acc = evaluate(model, eval_loader, args.T1, device, ron=ron)
+            test_acc, test_loss = evaluate(model, eval_loader, args.T1, device, ron=ron)
         else:
-            test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
-        print('\nTest accuracy :', round(test_acc, 2))
+            test_acc, test_loss = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
+        print(f"Epoch {epoch+1} Test - Accuracy: {round(test_acc, 2)}, Loss: {round(test_loss, 2)}")
+        epoch_test_accs.append(test_acc)
+        epoch_test_losses.append(test_loss)
+        
+        if args.plot:
+            # Evaluation sul train set (calcolata per epoca)
+            if compact:
+                train_acc, train_loss = evaluate(model, train_loader, args.T1, device, ron=ron)
+            else:
+                train_acc, train_loss = evaluate_TS(model, train_loader, args.T1, device, ron=ron)
+            print(f"Epoch {epoch+1} Train - Accuracy: {round(train_acc, 2)}, Loss: {round(train_loss, 2)}")
+            epoch_train_accs.append(train_acc)
+            epoch_train_losses.append(train_loss)
         
         if args.convergence:
             if compact:
-                differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
+                differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron, name=f'Epoch {epoch+1} Convergence')
             else:
-                differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
-
-    # Training accuracy
-    if compact:
-        training_acc = evaluate(model, train_loader, args.T1, device, ron=ron)
-    else:
-        training_acc = evaluate_TS(model, train_loader, args.T1, device, ron=ron)
-    print('\nTrain accuracy :', round(training_acc, 2))
+                differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron, name=f'Epoch {epoch+1} Convergence')
     
-    # Test accuracy
-    if compact:
-        test_acc = evaluate(model, eval_loader, args.T1, device, ron=ron)
-    else:
-        test_acc = evaluate_TS(model, eval_loader, args.T1, device, ron=ron)
-    print('\nTest accuracy :', round(test_acc, 2))
     
     # Final Convergence evaluation
     if args.convergence:
@@ -308,3 +313,40 @@ if __name__ == "__main__":
             differences = visualize_convergence(model, test_loader, args.T1, device, ron=ron)
         else:
             differences = visualize_convergence_TS(model, test_loader, args.T1, device, ron=ron)
+    
+    if args.plot:
+        import os
+        import matplotlib.pyplot as plt
+        output_folder = "plots"
+        os.makedirs(output_folder, exist_ok=True)
+        epochs_range = range(1, args.epochs + 1)
+        fig, ax1 = plt.subplots(figsize=(10, 6))
+        ax1.plot(epochs_range, epoch_train_accs, 'b-o', label='Train Accuracy')
+        ax1.plot(epochs_range, epoch_test_accs, 'g-o', label='Test Accuracy')
+        ax1.set_xlabel('Epoch')
+        ax1.set_ylabel('Accuracy', color='black')
+        ax1.tick_params(axis='y', labelcolor='black')
+
+        ax2 = ax1.twinx()
+        ax2.plot(epochs_range, epoch_train_losses, 'r-s', label='Train Loss')
+        ax2.plot(epochs_range, epoch_test_losses, 'm-s', label='Test Loss')
+        ax2.set_ylabel('Loss', color='black')
+        ax2.tick_params(axis='y', labelcolor='black')
+
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper center')
+        plt.title('Epoch-level Evaluation Metrics')
+        plt.tight_layout()
+
+        # Save the plot in "plots" folder
+        file_name = os.path.join(output_folder, "epoch_evaluation_metrics.png")
+        plt.savefig(file_name)
+        plt.close(fig)
+    else:
+         # Final evaluation on training set
+        if compact:
+            train_acc, train_loss = evaluate(model, train_loader, args.T1, device, ron=ron)
+        else:
+            train_acc, train_loss = evaluate_TS(model, train_loader, args.T1, device, ron=ron)
+        print(f"Epoch {epoch+1} Train - Accuracy: {round(train_acc, 2)}, Loss: {round(train_loss, 2)}")

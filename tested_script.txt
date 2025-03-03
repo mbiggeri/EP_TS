@@ -68,9 +68,6 @@ python main.py --model MLP --task PD --lrs 0.095 0.095 --archi 16 256 10 --mmt 0
 Train accuracy : 0.82
 Test accuracy : 0.79
 
-python main.py --model MLP --task PD --lrs 0.0811223298991313 0.0811223298991313 --archi 16 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 50 --T2 20 --epochs 3 --convergence
-
-
 ------------------- MLP_TS e PD:
 (1)
 python main.py --model MLP_TS --task PD --lrs 0.01 0.01 --archi 2 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 120 --T2 25 --rf 0.0 --epochs 10
@@ -122,3 +119,25 @@ Test accuracy : 0.1
 python main.py --model RON_TS --task PD --archi 2 256 10 --optim sgd --lrs 0.078 0.078 --mmt 0.9 --epochs 10 --act tanh --T1 50 --T2 20 --mbs 64 --alg EP --betas 0.0 0.5 --loss cel --gamma_min 2.4 --gamma_max 3.2 --eps_min 0.4 --eps_max 1.4 --tau 0.7 --convergence --learn_oscillators
 Train accuracy : 0.1
 Test accuracy : 0.1
+
+
+#--------------- MODELLI DA TESTARE PER GRAFICI:
+#--- MLP:
+python main.py --model MLP --task MNIST --archi 784 512 10 --optim adam --lrs 0.003737936427958196 0.0005127903143313068 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 20 --T2 6 --mbs 64 --alg EP --betas 0.0 0.5 --loss mse --convergence --plot
+python main.py --model MLP --task CIFAR10 --archi 3072 512 512 10 --optim sgd --lrs 0.01 0.01 0.01 --mmt 0.9 --epochs 20 --act my_hard_sig --T1 25 --T2 30 --mbs 128 --alg EP --betas 0.0 0.5 --loss mse --convergence --plot
+python main.py --model MLP --task PD --lrs 0.0811223298991313 0.0811223298991313 --archi 16 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 20 --T2 20 --epochs 10 --convergence --plot
+python main.py --model MLP --task PD --lrs 0.01 0.01 --archi 16 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 20 --T2 20 --epochs 10 --convergence --plot
+python main.py --model MLP --task PD --lrs 0.01 0.01 --archi 16 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 20 --T2 30 --epochs 10 --convergence --plot
+
+#--- RON:
+python main.py --model RON --task MNIST --archi 784 512 10 --optim adam --lrs 0.002463875834300521 0.0007246611741506864 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 55 --T2 55 --mbs 256 --alg EP --betas 0.0 1.0 --loss mse --gamma_min 0.9 --gamma_max 1.5 --eps_min 0.5 --eps_max 0.9 --tau 0.3 --convergence --plot
+python main.py --model RON --task MNIST --archi 784 512 10 --optim adam --lrs 0.002463875834300521 0.0007246611741506864 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 55 --T2 55 --mbs 256 --alg EP --betas 0.0 1.0 --loss mse --gamma_min 0.9 --gamma_max 1.5 --eps_min 0.5 --eps_max 0.9 --tau 0.3 --learn_oscillators --convergence --plot
+python main.py --model RON --task CIFAR10 --archi 3072 512 512 10 --optim sgd --lrs 0.1 0.1 0.1 --mmt 0.9 --epochs 10 --act my_hard_sig --T1 50 --T2 20 --mbs 128 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 0.5 --gamma_max 0.9 --eps_min 0.9 --eps_max 1.0 --tau 1.0 --convergence --plot
+python main.py --model RON --task PD --archi 16 256 10 --optim adam --lrs 0.0015802676837111326 0.0015802676837111326 --mmt 0.9 --epochs 20 --act my_hard_sig --T1 50 --T2 10 --mbs 64 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 0.8 --gamma_max 1.2 --eps_min 0.2 --eps_max 1.2 --tau 0.7  --learn_oscillators --convergence --plot
+
+#--- MLP_TS
+python main.py --model MLP_TS --task PD --lrs 0.01 0.01 --archi 2 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 10 --T2 25 --rf 0.0 --epochs 10 --convergence --plot
+python main.py --model MLP_TS --task PD --lrs 0.0012811037859190954 0.0012811037859190954 0.0012811037859190954 --archi 2 256 256 10 --mmt 0.9 --optim sgd --act my_hard_sig --betas 0.0 0.5 --loss mse --T1 20 --T2 20 --rf 1.0 --epochs 10 --convergence --plot
+
+#--- RON_TS
+python main.py --model RON_TS --task PD --archi 2 256 10 --optim sgd --lrs 0.0014782561811563287 0.0014782561811563287 --mmt 0.9 --epochs 15 --act my_hard_sig --T1 15 --T2 10 --mbs 64 --alg EP --betas 0.0 0.5 --loss mse --gamma_min 0.6 --gamma_max 1.8 --eps_min 1.2 --eps_max 1.8 --tau 0.7 --learn_oscillators --rf 1.0 --convergence --plot
