@@ -126,12 +126,12 @@ elif args.task == 'CIFAR10':
         cifar_train_size = int(0.7*len(cifar10_train_dset))
         cifar10_train_dset, cifar10_valid_dset = torch.utils.data.random_split(
             cifar10_train_dset, [cifar_train_size, len(cifar10_train_dset) - cifar_train_size])
-        valid_loader = torch.utils.data.DataLoader(cifar10_valid_dset, batch_size=200, shuffle=False, num_workers=1)
+        valid_loader = torch.utils.data.DataLoader(cifar10_valid_dset, batch_size=200, shuffle=False, num_workers=0)
 
     cifar10_test_dset = torchvision.datasets.CIFAR10(root=args.data_root, train=False, transform=transform_test,
                                                      download=True)
-    train_loader = torch.utils.data.DataLoader(cifar10_train_dset, batch_size=mbs, shuffle=True, num_workers=1)
-    test_loader = torch.utils.data.DataLoader(cifar10_test_dset, batch_size=200, shuffle=False, num_workers=1)
+    train_loader = torch.utils.data.DataLoader(cifar10_train_dset, batch_size=mbs, shuffle=True, num_workers=0)
+    test_loader = torch.utils.data.DataLoader(cifar10_test_dset, batch_size=200, shuffle=False, num_workers=0)
     
 # 
 elif args.task == 'PD':
@@ -295,7 +295,7 @@ if __name__ == "__main__":
             if compact:
                 train_acc, train_loss = evaluate(model, train_loader, args.T1, device, ron=ron)
             else:
-                train_acc, train_loss = evaluate_TS(model, train_loader, args.T1, device, ron=ron)
+                train_acc, train_loss = evaluate_TS(model, train_loader, args.T1, device, ron=ron, reset_factor=args.rf)
             print(f"Epoch {epoch+1} Train - Accuracy: {round(train_acc, 2)}, Loss: {round(train_loss, 2)}")
             epoch_train_accs.append(train_acc)
             epoch_train_losses.append(train_loss)

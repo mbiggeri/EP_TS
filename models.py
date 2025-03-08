@@ -620,9 +620,10 @@ def evaluate(model, loader, T, device, ron=False, criterion=torch.nn.MSELoss()):
     return acc, avg_loss
 
 
-def evaluate_TS(model, loader, T, device, ron=False, criterion=torch.nn.MSELoss()):
+def evaluate_TS(model, loader, T, device, ron=False, criterion=torch.nn.MSELoss(), reset_factor=0.0):
     """
-    Valuta il modello su dati time-series, calcolando sia l'accuracy che la loss.
+    Valuta il modello su dati time-series, tenendo conto del reset_factor per aggiornare lo stato
+    ad ogni timestep, in modo coerente con la fase di training.
     
     Per ogni batch:
       - Se il modello è a stato singolo, viene eseguita la dinamica per ogni timestep e il risultato finale viene usato per il calcolo.
@@ -637,26 +638,38 @@ def evaluate_TS(model, loader, T, device, ron=False, criterion=torch.nn.MSELoss(
     total = 0
     total_loss = 0.0
     
-    #results = []  # Lista per salvare le coppie (output, risposta_corretta)
-
     for x, y in loader:
         x = x.to(device)
         y = y.to(device)
         B, T_seq, D = x.shape
 
         if not ron:
-            neurons = model.init_neurons(B, device)
+            neurons = None
             for t in range(T_seq):
                 x_t = x[:, t, :]
                 # Se y ha label per ogni timestep, ne usiamo uno; altrimenti usiamo lo stesso y per tutti i timesteps
                 y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                if neurons is None:
+                    neurons = model.init_neurons(B, device)
+                else:
+                    # Applichiamo il reset factor come in training
+                    neurons = [n.detach() * reset_factor for n in neurons]
+                    neurons = [n.clone().requires_grad_() for n in neurons]
                 neurons = model(x_t, y_t, neurons, T, beta=0.0)
             output = neurons[-1]
         else:
-            neuronsz, neuronsy = model.init_neurons(B, device)
+            neuronsz, neuronsy = None, None
             for t in range(T_seq):
                 x_t = x[:, t, :]
                 y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+                if neuronsz is None or neuronsy is None:
+                    neuronsz, neuronsy = model.init_neurons(B, device)
+                else:
+                    # Applichiamo il reset factor su entrambi gli stati per RON
+                    neuronsz = [nz.detach() * reset_factor for nz in neuronsz]
+                    neuronsz = [nz.clone().requires_grad_() for nz in neuronsz]
+                    neuronsy = [ny.detach() * reset_factor for ny in neuronsy]
+                    neuronsy = [ny.clone().requires_grad_() for ny in neuronsy]
                 neuronsz, neuronsy = model(x_t, y_t, neuronsz, neuronsy, T, beta=0.0)
             output = neuronsy[-1]
 
@@ -672,13 +685,6 @@ def evaluate_TS(model, loader, T, device, ron=False, criterion=torch.nn.MSELoss(
         pred = torch.argmax(output, dim=1).squeeze()
         correct += (pred == y).sum().item()
         
-        '''
-        # Salva per ogni esempio la coppia (risultato corretto, predizione) come interi
-        for i in range(B):
-            results.append((int(y[i].item()), int(pred[i].item())))
-        '''
-
-    #print("Results (target, prediction):", results)
     avg_loss = total_loss / total
     acc = correct / total
     return acc, avg_loss
@@ -775,12 +781,17 @@ def visualize_convergence(model, loader, T_ep, device, ron=False, name='Converge
     return differences_per_layer
 
 
-def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-Series Convergence to a Fixed Point', beta=0.0):
+def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-Series Convergence to a Fixed Point', beta=0.0, reset_factor=0.0):
     """
     Visualize the convergence of a time-series model's states to a fixed point,
     tracking the differences (L2 norm) between consecutive states for each layer
     across all mini-steps (global EP steps).
+    
+    La funzione ora include la dinamica del reset_factor, applicando una parziale "pulizia"
+    degli stati ad ogni nuovo timestep (tranne il primo), in modo coerente con train_epoch_TS ed evaluate_TS.
     """
+    import os, numpy as np, matplotlib.pyplot as plt, torch
+
     # Create a folder for saving the plots
     output_folder = "plots"
     os.makedirs(output_folder, exist_ok=True)
@@ -794,7 +805,6 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-
     
     # Dictionary to store per-layer differences (global across time and EP iterations)
     differences_per_layer = {}
-    global_differences = []  # To also store the overall output differences if needed
     
     if not ron:
         # ------------------ Single-state TS model ------------------
@@ -808,6 +818,11 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-
         for t in range(T_seq):
             x_t = x[:, t, :]
             y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+            # Applica il reset_factor se non è il primo timestep
+            if t > 0:
+                neurons = [n.detach() * reset_factor for n in neurons]
+                neurons = [n.clone().requires_grad_() for n in neurons]
+                prev_states = [n.clone().detach() for n in neurons]
             for _ in range(T_ep):
                 # For each mini-step, record per-layer differences
                 new_states = model(x_t, y_t, neurons, 1, beta)
@@ -826,6 +841,13 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-
         for t in range(T_seq):
             x_t = x[:, t, :]
             y_t = y[:, t] if (y.ndim > 1 and y.size(1) == T_seq) else y
+            # Applica il reset_factor se non è il primo timestep
+            if t > 0:
+                neuronsz = [nz.detach() * reset_factor for nz in neuronsz]
+                neuronsz = [nz.clone().requires_grad_() for nz in neuronsz]
+                neuronsy = [ny.detach() * reset_factor for ny in neuronsy]
+                neuronsy = [ny.clone().requires_grad_() for ny in neuronsy]
+                prev_states = [n.clone().detach() for n in neuronsy]
             for _ in range(T_ep):
                 new_neuronsz, new_neuronsy = model(x_t, y_t, neuronsz, neuronsy, 1, beta)
                 for i, n in enumerate(new_neuronsy):
@@ -833,11 +855,10 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-
                     differences_per_layer[i].append(diff)
                     prev_states[i] = n.clone().detach()
                 neuronsz, neuronsy = new_neuronsz, new_neuronsy
+
+    original_max = {}   # Dictionary per salvare i valori massimi per ogni layer (da indicare nel plot)
     
-    
-    original_max = {}   # Dictionary for saving max values for every layer (to indicate in the plot)
-    
-    # Normalization for every layer (min-max scaling) for better visualization
+    # Normalizzazione per ogni layer (min-max scaling) per una migliore visualizzazione
     for layer, diffs in differences_per_layer.items():
         min_val = min(diffs)
         max_val = max(diffs)
@@ -875,6 +896,5 @@ def visualize_convergence_TS(model, loader, T_ep, device, ron=False, name='Time-
     file_path = os.path.join("plots", file_name)
     plt.savefig(file_path)
     plt.close(fig)
-    # ----------------------------------------------------------------
     
     return differences_per_layer
